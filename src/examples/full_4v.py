@@ -9,8 +9,10 @@ def main():
     graph.add_edge(1, 2)
     graph.add_edge(2, 3)
     graph.add_edge(3, 4)
-    graph.add_edge(4, 5)
-    graph.add_edge(5, 1)
+    graph.add_edge(4, 1)
+
+    graph.add_edge(1, 3)
+    graph.add_edge(2, 4)
 
     vmtl_problem = VmtlProblem(graph)
 

@@ -1,15 +1,17 @@
 import constraint
-import numpy as np
 
 from src.graph.graph import Graph
 from src.graph.node import Node
 
 
-class VmtlSolver:
-    problem = constraint.Problem()
+class VmtlProblem:
+    _problem = constraint.Problem()
+
+    def __init__(self, graph: Graph):
+        self._setup_problem(graph)
 
     @staticmethod
-    def _add_graph_to_problem(problem: constraint.Problem, graph: Graph) -> list:
+    def _add_graph_to_problem(problem: constraint.Problem, graph: Graph):
         variable_names = []
         vertex_edge_count = len(graph.edges) + len(graph.nodes)
         colors = [i for i in range(1, vertex_edge_count + 1)]
@@ -20,7 +22,6 @@ class VmtlSolver:
         for edge in graph.edges:
             variable_names.append('e' + str(edge))
             problem.addVariable('e' + str(edge), colors)
-        return variable_names
 
     @staticmethod
     def _add_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node):
@@ -61,36 +62,40 @@ class VmtlSolver:
 
     @staticmethod
     def _add_vmtl_constraints_to_problem(problem: constraint.Problem, graph: Graph):
+        for edge_1 in graph.edges:
+            for edge_2 in graph.edges:
+                # Prevents duplicate constraints
+                if edge_1 == edge_2:
+                    break
+
+                # Pair of edges have different labels
+                problem.addConstraint(lambda e_1, e_2: e_1 != e_2, ['e' + str(edge_1), 'e' + str(edge_2)])
+
         for node_1 in graph.nodes.values():
+            for edge in graph.edges:
+                problem.addConstraint(lambda v, e: v != e, ['v' + str(node_1), 'e' + str(edge)])
+
             for node_2 in graph.nodes.values():
+                # Prevents duplicate constraints
                 if node_1 == node_2:
-                    # Edges for all vertices are unique
-                    node_1_edges = ['e' + str(edge) for edge in node_1.edges]
-                    problem.addConstraint(lambda *x: np.unique(x).size == len(x), node_1_edges)
-                    continue
+                    break
 
-                shared_edge = node_1.is_connected(node_2)
-                if not shared_edge:
-                    continue
-
-                # Adjacent vertices are different
+                # Pair of vertices have different labels
                 problem.addConstraint(lambda v_1, v_2: v_1 != v_2, ['v' + str(node_1), 'v' + str(node_2)])
 
-                # k for two vertices is the same
-                VmtlSolver._add_k_constraint(problem, node_1, node_2)
+                # k for pair of vertices is the same
+                VmtlProblem._add_k_constraint(problem, node_1, node_2)
 
-    @staticmethod
-    def find_first_vmtl_labeling(graph: Graph) -> dict:
-        problem = constraint.Problem()
+    def _setup_problem(self, graph: Graph):
+        self._problem = constraint.Problem()
 
-        variable_names = VmtlSolver._add_graph_to_problem(problem, graph)
+        VmtlProblem._add_graph_to_problem(self._problem, graph)
+        VmtlProblem._add_vmtl_constraints_to_problem(self._problem, graph)
 
-        # Every label is different
-        problem.addConstraint(lambda *x: np.unique(x).size == len(x), variable_names)
-        VmtlSolver._add_vmtl_constraints_to_problem(problem, graph)
+    def get_solution(self) -> dict:
+        solution: dict = self._problem.getSolution()
+        return solution
 
-        solution: dict = problem.getSolution()
-
-        # Resets problem solver
-        VmtlSolver.problem = constraint.Problem()
+    def get_solutions(self) -> dict:
+        solution: dict = self._problem.getSolutions()
         return solution

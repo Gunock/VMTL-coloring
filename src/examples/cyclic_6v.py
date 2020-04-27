@@ -10,7 +10,8 @@ def main():
     graph.add_edge(2, 3)
     graph.add_edge(3, 4)
     graph.add_edge(4, 5)
-    graph.add_edge(5, 1)
+    graph.add_edge(5, 6)
+    graph.add_edge(6, 1)
 
     vmtl_problem = VmtlProblem(graph)
 
