@@ -11,7 +11,7 @@ class VmtlProblem:
         self._setup_problem(graph)
 
     @staticmethod
-    def _add_graph_to_problem(problem: constraint.Problem, graph: Graph):
+    def _add_graph_to_problem(problem: constraint.Problem, graph: Graph) -> None:
         variable_names = []
         vertex_edge_count = len(graph.edges) + len(graph.nodes)
         colors = [i for i in range(1, vertex_edge_count + 1)]
@@ -24,12 +24,12 @@ class VmtlProblem:
             problem.addVariable('e' + str(edge), colors)
 
     @staticmethod
-    def _add_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node):
+    def _add_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:
         # k for two vertices is same
         node_1_edges = [str(edge) for edge in node_1.edges]
         node_2_edges = [str(edge) for edge in node_2.edges]
 
-        condition = "lambda "
+        condition: str = "lambda "
 
         # Add lambda arguments
         for edge in node_1_edges:
@@ -61,7 +61,8 @@ class VmtlProblem:
         problem.addConstraint(eval(condition), variables)
 
     @staticmethod
-    def _add_vmtl_constraints_to_problem(problem: constraint.Problem, graph: Graph):
+    def _add_vmtl_constraints_to_problem(problem: constraint.Problem, graph: Graph) -> None:
+
         for edge_1 in graph.edges:
             for edge_2 in graph.edges:
                 # Prevents duplicate constraints
@@ -86,7 +87,7 @@ class VmtlProblem:
                 # k for pair of vertices is the same
                 VmtlProblem._add_k_constraint(problem, node_1, node_2)
 
-    def _setup_problem(self, graph: Graph):
+    def _setup_problem(self, graph: Graph) -> None:
         self._problem = constraint.Problem()
 
         VmtlProblem._add_graph_to_problem(self._problem, graph)
