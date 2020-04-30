@@ -1,0 +1,53 @@
+<html>
+  <head>
+    <title>SigmaJS example</title>
+    <style>
+      html { height:100%;}
+      body {height: 100%;}
+      #sigma-container { width:100%; height:100%; background-color:#E1E1E1; clear:both;}
+	  #vertex{float:left; width:25%;}
+	  #list1{float:left; width:15%;}
+	  #list2{float:left; width:15%;}
+	  #edge{float:left; width:25%;}
+	  #result{float:left; width:20%;}
+    </style>
+  </head>
+  <body>
+  <div id='container'>
+	<div id='options'>
+		<div id='vertex'>Wierzchołki<br><br>
+			    <form action="addNode" method="post">
+				  <label for="x_pos">X:</label><br>
+				  <input type="text" id="x_pos" name="x_pos"><br>
+				  <label for="y_pos">Y:</label><br>
+				  <input type="text" id="y_pos" name="y_pos"><br><br>
+				  <input type="submit" value="Dodaj wierzchołek" id="s_1">
+				</form> 
+		</div>
+		<div id='edge'>Krawędzie<br><br>
+			  <form action="addEdge" method="post">
+				  <label for="id_1">ID1:</label><br>
+				  <input type="text" id="id_1" name="id_1"><br>
+				  <label for="id_2">ID2:</label><br>
+				  <input type="text" id="id_2" name="id_2"><br><br>
+				  <input type="submit" value="Dodaj krawędź">
+				</form> 
+		</div>
+		<div id='result'>		
+			  <button id="vmtl" onclick="printGraph()">Rozwiązanie</button>
+		</div>
+	</div>
+    <div id='sigma-container'></div>
+  </div>
+  </body>
+    <script src="../static/sigma.min.js"></script>
+	<script src="../static/sigma.parsers.json.js"></script>
+    <script>	
+		s = sigma.parsers.json('../data/graph.json', {
+			container: 'sigma-container',
+			settings: {
+			  defaultNodeColor: '#ec5148'
+			}
+		});
+    </script>
+</html>
