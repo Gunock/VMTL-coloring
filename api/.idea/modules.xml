@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ProjectModuleManager">
-    <modules>
-      <module fileurl="file://$USER_HOME$/Downloads/flask-network-graph-master/.idea/flask-network-graph-master.iml" filepath="$USER_HOME$/Downloads/flask-network-graph-master/.idea/flask-network-graph-master.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/sigma_API.iml" filepath="$PROJECT_DIR$/.idea/sigma_API.iml" />
-    </modules>
-  </component>
-</project>
