@@ -1,8 +1,8 @@
 ;(function () {
     'use strict';
 
-    var s, c, dom, disc, ground, nId = 0, eId = 0, radius = 50, mouseX, mouseY, spaceMode = false, wheelRatio = 1.1,
-        nodeRadius = 10, inertia = 0.8, springForce = 0.01, springLength = 50, maxDisplacement = 15, gravity = 1.5;
+    let s, c, dom, disc, ground, nId = 0, eId = 0, radius = 50, mouseX, mouseY, spaceMode = false, wheelRatio = 1.1,
+        nodeRadius = 10, maxDisplacement = 15;
 
 
     /**
@@ -10,7 +10,7 @@
      * **********************
      */
     sigma.classes.graph.addMethod('computePhysics', function () {
-        var i, j, l = this.nodesArray.length, s, t, dX, dY, d, v;
+        let i, l = this.nodesArray.length, s;
 
         for (i = 0; i < l; i++) {
             s = this.nodesArray[i];
@@ -51,17 +51,11 @@
         s.refresh();
 
         if (s.graph.nodes().length) {
-            var w = dom.offsetWidth,
-                h = dom.offsetHeight;
+            let w = dom.offsetWidth, h = dom.offsetHeight;
 
             // The "rescale" middleware modifies the position of the nodes, but we
             // need here the camera to deal with this. Here is the code:
-            var xMin = Infinity,
-                xMax = -Infinity,
-                yMin = Infinity,
-                yMax = -Infinity,
-                margin = 50,
-                scale;
+            let xMin = Infinity, xMax = -Infinity, yMin = Infinity, yMax = -Infinity, margin = 50, scale;
 
             s.graph.nodes().forEach(function (n) {
                 xMin = Math.min(n.x, xMin);
@@ -87,16 +81,14 @@
             });
 
             ground.style.top =
-                Math.max(h / 2 - Math.min((yMin + yMax) / 2 * scale, h), 0) + 'px';
-            disc.style.borderRadius = radius * scale;
-            disc.style.width = 2 * radius * scale;
-            disc.style.height = 2 * radius * scale;
-            disc.style.top = mouseY - radius * scale;
-            disc.style.left = mouseX - radius * scale;
+                (Math.max(h / 2 - Math.min((yMin + yMax) / 2 * scale, h), 0) + 'px').toString();
+            disc.style.borderRadius = (radius * scale).toString();
+            disc.style.width = (2 * radius * scale).toString();
+            disc.style.height = (2 * radius * scale).toString();
+            disc.style.top = (mouseY - radius * scale).toString();
+            disc.style.left = (mouseX - radius * scale).toString();
             disc.style.backgroundColor = spaceMode ? '#f99' : '#9cf';
-
         }
-
         requestAnimationFrame(frame);
     }
 
@@ -109,11 +101,7 @@
      */
     dom.addEventListener('click', function (e) {
         // Find neighbors:
-        var x,
-            y,
-            p,
-            id,
-            neighbors;
+        let x, y, p, id, neighbors;
 
         x = sigma.utils.getX(e) - dom.offsetWidth / 2;
         y = sigma.utils.getY(e) - dom.offsetHeight / 2;
@@ -163,9 +151,9 @@
         radius *= sigma.utils.getDelta(e) < 0 ? 1 / wheelRatio : wheelRatio;
     }, false);
     document.addEventListener('keydown', function (e) {
-        spaceMode = (e.which == 32) ? true : spaceMode;
+        spaceMode = (e.which === 32) ? true : spaceMode;
     });
     document.addEventListener('keyup', function (e) {
-        spaceMode = e.which == 32 ? false : spaceMode;
+        spaceMode = e.which === 32 ? false : spaceMode;
     });
 })();

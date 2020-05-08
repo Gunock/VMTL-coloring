@@ -1,17 +1,17 @@
 
-    #graph-container {
-        background: #fff;
-        height: 900px;
-        max-width: 1500px;
-        margin: auto;
-        position: relative;
-        overflow: hidden;
-    }
+#graph-container {
+    background: #fff;
+    height: 900px;
+    max-width: 1500px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+}
 
-    #disc {
-        position: absolute;
-        top: 100%;
-        bottom: 0;
-        left: 0;
-        right: 0;
-    }
+#disc {
+    position: absolute;
+    top: 100%;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
