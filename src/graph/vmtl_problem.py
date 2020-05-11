@@ -1,3 +1,5 @@
+import re
+
 import constraint
 
 from src.graph.graph import Graph
@@ -5,9 +7,10 @@ from src.graph.node import Node
 
 
 class VmtlProblem:
-    _problem = constraint.Problem()
 
     def __init__(self, graph: Graph):
+        self._problem = constraint.Problem()
+        self._graph: Graph = graph
         self._setup_problem(graph)
 
     @staticmethod
@@ -25,8 +28,8 @@ class VmtlProblem:
 
         problem.addVariable('k', k)
         for node in graph.nodes.values():
-            variable_names.append('v' + str(node))
-            problem.addVariable('v' + str(node), colors)
+            variable_names.append('n' + str(node))
+            problem.addVariable('n' + str(node), colors)
 
         for edge in graph.edges:
             variable_names.append('e' + str(edge))
@@ -50,27 +53,27 @@ class VmtlProblem:
             condition += 'e1_' + edge + ', '
         for edge in node_2_edges:
             condition += 'e2_' + edge + ', '
-        condition += 'v' + str(1) + ', '
-        condition += 'v' + str(2) + ': '
+        condition += 'n' + str(1) + ', '
+        condition += 'n' + str(2) + ': '
 
         # Add lambda body
 
         # k of first node and it's edges
         for edge in node_1_edges:
             condition += 'e1_' + str(edge) + ' + '
-        condition += 'v' + str(1)
+        condition += 'n' + str(1)
 
         condition += ' == '
 
         # k of second node and it's edges
         for edge in node_2_edges:
             condition += 'e2_' + edge + ' + '
-        condition += 'v' + str(2)
+        condition += 'n' + str(2)
 
         # Create list of constraint variables
         variables = ['e' + edge for edge in node_1_edges]
         variables += ['e' + edge for edge in node_2_edges]
-        variables += ['v' + str(node_1), 'v' + str(node_2)]
+        variables += ['n' + str(node_1), 'n' + str(node_2)]
 
         problem.addConstraint(eval(condition), variables)
 
@@ -90,7 +93,7 @@ class VmtlProblem:
             # vertex and it's edge count equals k
             VmtlProblem._add_vertex_k_constraint(problem, node_1)
             for edge in graph.edges:
-                problem.addConstraint(lambda v, e: v != e, ['v' + str(node_1), 'e' + str(edge)])
+                problem.addConstraint(lambda v, e: v != e, ['n' + str(node_1), 'e' + str(edge)])
 
             for node_2 in graph.nodes.values():
                 # Prevents duplicate constraints
@@ -98,7 +101,7 @@ class VmtlProblem:
                     break
 
                 # Pair of vertices have different labels
-                problem.addConstraint(lambda v_1, v_2: v_1 != v_2, ['v' + str(node_1), 'v' + str(node_2)])
+                problem.addConstraint(lambda n_1, n_2: n_1 != n_2, ['n' + str(node_1), 'n' + str(node_2)])
 
                 # k for pair of vertices is the same
                 VmtlProblem._add_vertex_pair_k_constraint(problem, node_1, node_2)
@@ -109,9 +112,19 @@ class VmtlProblem:
         VmtlProblem._add_graph_to_problem(self._problem, graph)
         VmtlProblem._add_vmtl_constraints_to_problem(self._problem, graph)
 
-    def get_solution(self) -> dict:
+    def _solution_to_graph(self, solution: dict) -> Graph:
+        result: Graph = self._graph
+        for key in solution:
+            element_id = int(re.search(r'[0-9]+', key).group())
+            if 'n' in key:
+                result.set_node_label(element_id, str(solution[key]))
+            elif 'e' in key:
+                result.set_edge_label(element_id, str(solution[key]))
+        return result
+
+    def get_solution(self) -> Graph:
         solution: dict = self._problem.getSolution()
-        return solution
+        return self._solution_to_graph(solution)
 
     def get_solutions(self) -> dict:
         solution: dict = self._problem.getSolutions()
