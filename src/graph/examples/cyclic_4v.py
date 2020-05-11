@@ -5,7 +5,7 @@ from src.graph.vmtl_problem import VmtlProblem
 
 
 def main():
-    graph = Graph.generate_complete(4)
+    graph = Graph.generate_cyclic(4)
 
     time_start = time.time()
     solution: Graph = VmtlProblem(graph).get_solution()
