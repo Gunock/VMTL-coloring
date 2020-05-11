@@ -67,6 +67,13 @@ class Graph:
             i += 1
         return result
 
+    def max_edges(self):
+        result: int = 0
+        for node in self.nodes.values():
+            if len(node.edges) > result:
+                result = len(node.edges)
+        return result
+
     def is_cyclic(self) -> bool:
         if len(self.nodes) != len(self.edges):
             return False
@@ -89,4 +96,12 @@ class Graph:
         if matrix[i - 1][0] == 0:
             return False
 
+        return True
+
+    def is_complete(self):
+        matrix: List[list] = self._to_reduced_matrix()
+        for row in matrix:
+            for cell in row:
+                if cell != 1:
+                    return False
         return True

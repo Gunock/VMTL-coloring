@@ -1,14 +1,17 @@
 import time
 
 from src.graph.graph import Graph
-from src.vmtl_problem import VmtlProblem
+from src.graph.vmtl_problem import VmtlProblem
 
 
 def main():
     graph = Graph()
-    graph.add_edge(1, 2)
-    graph.add_edge(2, 3)
-    graph.add_edge(3, 1)
+    vertex_count: int = 5
+    for i in range(1, vertex_count + 1):
+        for j in range(1, vertex_count + 1):
+            if i == j:
+                break
+            graph.add_edge(i, j)
 
     vmtl_problem = VmtlProblem(graph)
 

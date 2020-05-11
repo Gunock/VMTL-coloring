@@ -14,7 +14,16 @@ class VmtlProblem:
     def _add_graph_to_problem(problem: constraint.Problem, graph: Graph) -> None:
         variable_names = []
         vertex_edge_count = len(graph.edges) + len(graph.nodes)
+        max_edges = graph.max_edges()
         colors = [i for i in range(1, vertex_edge_count + 1)]
+
+        k_max = ((max_edges + 1) * vertex_edge_count - sum(range(1, max_edges + 1))) + 1
+        k = [i for i in range(6, k_max)]
+        if graph.is_complete():
+            k = list(filter(lambda elem: elem % 4 == 0, k))
+        print(k)
+
+        problem.addVariable('k', k)
         for node in graph.nodes.values():
             variable_names.append('v' + str(node))
             problem.addVariable('v' + str(node), colors)
@@ -24,7 +33,12 @@ class VmtlProblem:
             problem.addVariable('e' + str(edge), colors)
 
     @staticmethod
-    def _add_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:
+    def _add_vertex_k_constraint(problem: constraint.Problem, node: Node) -> None:
+        node_edges = ['e' + str(edge) for edge in node.edges]
+        problem.addConstraint(lambda v, k, *e: v + sum(e) == k, ['v' + str(node), 'k'] + node_edges)
+
+    @staticmethod
+    def _add_vertex_pair_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:
         # k for two vertices is same
         node_1_edges = [str(edge) for edge in node_1.edges]
         node_2_edges = [str(edge) for edge in node_2.edges]
@@ -73,6 +87,8 @@ class VmtlProblem:
                 problem.addConstraint(lambda e_1, e_2: e_1 != e_2, ['e' + str(edge_1), 'e' + str(edge_2)])
 
         for node_1 in graph.nodes.values():
+            # vertex and it's edge count equals k
+            VmtlProblem._add_vertex_k_constraint(problem, node_1)
             for edge in graph.edges:
                 problem.addConstraint(lambda v, e: v != e, ['v' + str(node_1), 'e' + str(edge)])
 
@@ -85,7 +101,7 @@ class VmtlProblem:
                 problem.addConstraint(lambda v_1, v_2: v_1 != v_2, ['v' + str(node_1), 'v' + str(node_2)])
 
                 # k for pair of vertices is the same
-                VmtlProblem._add_k_constraint(problem, node_1, node_2)
+                VmtlProblem._add_vertex_pair_k_constraint(problem, node_1, node_2)
 
     def _setup_problem(self, graph: Graph) -> None:
         self._problem = constraint.Problem()
