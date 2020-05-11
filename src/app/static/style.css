@@ -1,0 +1,29 @@
+html {
+    height: 100%;
+}
+
+body {
+    height: 100%;
+}
+
+#sigma-container {
+    width: 100%;
+    height: 100%;
+    background-color: #E1E1E1;
+    clear: both;
+}
+
+#vertex {
+    float: left;
+    width: 25%;
+}
+
+#edge {
+    float: left;
+    width: 25%;
+}
+
+#result {
+    float: left;
+    width: 20%;
+}

@@ -1,51 +1,65 @@
 <html lang="pl">
-  <head>
-    <title>SigmaJS example</title>
-    <style>
-      html { height:100%;}
-      body {height: 100%;}
-      #sigma-container { width:100%; height:100%; background-color:#E1E1E1; clear:both;}
-	  #vertex{float:left; width:25%;}
-	  #edge{float:left; width:25%;}
-	  #result{float:left; width:20%;}
-    </style>
-  </head>
-  <body>
-  <div id='container'>
-	<div id='options'>
-		<div id='vertex'>Wierzchołki<br><br>
-			    <form action="addNode" method="post">
-				  <label for="x_pos">X:</label><br>
-				  <input type="text" id="x_pos" name="x_pos"><br>
-				  <label for="y_pos">Y:</label><br>
-				  <input type="text" id="y_pos" name="y_pos"><br><br>
-				  <input type="submit" value="Dodaj wierzchołek" id="s_1">
-				</form> 
-		</div>
-		<div id='edge'>Krawędzie<br><br>
-			  <form action="addEdge" method="post">
-				  <label for="id_1">ID1:</label><br>
-				  <input type="text" id="id_1" name="id_1"><br>
-				  <label for="id_2">ID2:</label><br>
-				  <input type="text" id="id_2" name="id_2"><br><br>
-				  <input type="submit" value="Dodaj krawędź">
-				</form> 
-		</div>
-		<div id='result'>		
-			  <button id="vmtl" onclick="printGraph()">Rozwiązanie</button>
-		</div>
-	</div>
-    <div id='sigma-container'></div>
-  </div>
-  </body>
+<head>
+    <title>VMTL Coloring - Backend Editor</title>
+
     <script src="../static/sigma.min.js"></script>
-	<script src="../static/sigma.parsers.json.js"></script>
-    <script>	
-		s = sigma.parsers.json('../data/graph.json', {
-			container: 'sigma-container',
-			settings: {
-			  defaultNodeColor: '#ec5148'
-			}
-		});
-    </script>
+    <script src="../static/sigma.parsers.json.js"></script>
+    <script src="../static/settings.js"></script>
+    <script src="../static/sigma.canvas.edges.labels.def.js"></script>
+    <script src="../static/sigma.canvas.edges.labels.curve.js"></script>
+    <script src="../static/sigma.canvas.edges.labels.curvedArrow.js"></script>
+
+    <link href="../static/style.css" rel="stylesheet" type="text/css">
+</head>
+<body>
+<div id='container'>
+    <div id='options'>
+        <div id='vertex'>Wierzchołki<br><br>
+            <form action="addNode" method="post">
+                <label for="v_id">ID:</label><br>
+                <input id="v_id" name="v_id" type="text"><br>
+                <label for="x_pos">X:</label><br>
+                <input id="x_pos" name="x_pos" type="text"><br>
+                <label for="y_pos">Y:</label><br>
+                <input id="y_pos" name="y_pos" type="text"><br><br>
+                <input id="s_1" type="submit" value="Dodaj wierzchołek">
+            </form>
+        </div>
+        <div id='edge'>Krawędzie<br><br>
+            <form action="addEdge" method="post">
+                <label for="id_1">ID1:</label><br>
+                <input id="id_1" name="id_1" type="text"><br>
+                <label for="id_2">ID2:</label><br>
+                <input id="id_2" name="id_2" type="text"><br><br>
+                <input type="submit" value="Dodaj krawędź">
+            </form>
+        </div>
+        <div id='result'>
+            <form action="solveVmtl" method="get">
+                <button id="vmtl" onclick="printGraph()">Rozwiązanie</button>
+            </form>
+        </div>
+    </div>
+    <div id='sigma-container'></div>
+</div>
+<script>
+    s = sigma.parsers.json('../data/graph.json', {
+        container: 'sigma-container',
+        renderer: {
+            container: document.getElementById('sigma-container'),
+            type: 'canvas'
+        },
+        settings: {
+            autoRescale: false,
+            labelThreshold: 1,
+            defaultLabelSize: 50,
+            labelSize: 'fixed',
+            edgeLabelThreshold: 1,
+            defaultEdgeLabelSize: 50,
+            edgeLabelSize: 'fixed',
+            defaultNodeColor: '#ec5148'
+        }
+    });
+</script>
+</body>
 </html>
