@@ -1,7 +1,7 @@
 import time
 
 from src.graph.graph import Graph
-from src.vmtl_problem import VmtlProblem
+from src.graph.vmtl_problem import VmtlProblem
 
 
 def main():
