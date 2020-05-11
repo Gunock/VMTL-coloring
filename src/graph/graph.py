@@ -9,9 +9,13 @@ class Graph:
     def __init__(self):
         self.edges: Dict[int, Edge] = {}
         self.nodes: Dict[int, Node] = {}
+        self.marker: tuple = ()
 
     def __repr__(self):
         return str(self.to_dict())
+
+    def add_marker(self, name: str, value):
+        self.marker: tuple = (name, value)
 
     def to_dict(self) -> dict:
         return {
@@ -64,6 +68,10 @@ class Graph:
     def set_edge_label(self, edge_id: int, label: str):
         if edge_id in self.edges:
             self.edges[edge_id].label = label
+        for i in range(0, len(self.nodes[self.edges[edge_id].source.id].edges)):
+            self.nodes[self.edges[edge_id].source.id].edges[i].label = label
+        for i in range(0, len(self.nodes[self.edges[edge_id].target.id].edges)):
+            self.nodes[self.edges[edge_id].target.id].edges[i].label = label
 
     def _to_dict(self):
         matrix_dict: dict = {}
@@ -128,12 +136,43 @@ class Graph:
 
         return True
 
+    def is_path(self) -> bool:
+        if len(self.marker) != 0 and self.marker[0] == 'is_path' and self.marker[1] == True:
+            return True
+
+        if len(self.edges) != len(self.nodes) - 1:
+            return False
+
+        matrix: List[list] = self._to_reduced_matrix()
+
+        # cut first column
+        matrix.pop(0)
+        for row in matrix:
+            del row[0]
+
+        # check axis
+        i: int = 0
+        while i < len(matrix):
+            if matrix[i][i] == 0:
+                return False
+            i += 1
+
+        return True
+
     def is_complete(self):
         matrix: List[list] = self._to_reduced_matrix()
         for row in matrix:
             for cell in row:
                 if cell != 1:
                     return False
+        return True
+
+    def is_vmtl(self) -> bool:
+        previous_k = None
+        for node in self.nodes.values():
+            current_k = sum([int(node.label)] + [int(edge.label) for edge in node.edges])
+            if current_k != previous_k and previous_k is not None:
+                return False
         return True
 
     @staticmethod
@@ -143,6 +182,15 @@ class Graph:
             graph.add_node(Node(i))
         for i in range(1, n + 1):
             graph.create_edge(i, i % n + 1)
+        return graph
+
+    @staticmethod
+    def generate_path(n: int):
+        graph = Graph()
+        for i in range(1, n + 1):
+            graph.add_node(Node(i))
+        for i in range(1, n):
+            graph.create_edge(i, i + 1)
         return graph
 
     @staticmethod
