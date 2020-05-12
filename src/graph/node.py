@@ -1,3 +1,6 @@
+import re
+
+
 class Node:
     def __init__(self, node_id: int, x: float = 0, y: float = 0):
         self.edges: list = []
@@ -29,3 +32,10 @@ class Node:
             if edge in other.edges:
                 return edge
         return None
+
+    @staticmethod
+    def from_dict(node_dict: dict):
+        node = Node(int(re.search(r'[0-9]+', node_dict['id']).group()), float(node_dict['x']), float(node_dict['y']))
+        if 'label' in node_dict:
+            node.label = node_dict['label']
+        return node

@@ -1,4 +1,5 @@
 import json
+import re
 from typing import List, Dict
 
 from src.graph.edge import Edge
@@ -26,6 +27,13 @@ class Graph:
     def save_as_json(self, path: str = 'data/graph.json') -> None:
         with open(path, "w+") as f:
             f.write(json.dumps(self.to_dict()))
+
+    def create_edge_from_dict(self, edge_dict: dict) -> None:
+        source_id = int(re.search(r'[0-9]+', edge_dict['source']).group())
+        target_id = int(re.search(r'[0-9]+', edge_dict['target']).group())
+        self.create_edge(source_id, target_id)
+        if 'label' in edge_dict:
+            self.set_edge_label(len(self.edges), edge_dict['label'])
 
     def create_edge(self, node_1_id: int, node_2_id: int):
         if node_1_id not in self.nodes or node_2_id not in self.nodes:
@@ -72,38 +80,6 @@ class Graph:
             self.nodes[self.edges[edge_id].source.id].edges[i].label = label
         for i in range(0, len(self.nodes[self.edges[edge_id].target.id].edges)):
             self.nodes[self.edges[edge_id].target.id].edges[i].label = label
-
-    def _to_dict(self):
-        matrix_dict: dict = {}
-        for node_1 in self.nodes.values():
-            matrix_dict[node_1.id] = {}
-            for node_2 in self.nodes.values():
-                matrix_dict[node_1.id][node_2.id] = 0
-
-        for edge in self.edges.values():
-            matrix_dict[edge.source.id][edge.target.id] = 1
-            matrix_dict[edge.target.id][edge.source.id] = 1
-        return matrix_dict
-
-    def _to_matrix(self):
-        matrix_dict = self._to_dict()
-
-        result: list = []
-        for key_1 in matrix_dict:
-            result.append([1])
-            for key_2 in matrix_dict[key_1]:
-                result[len(result) - 1].append(matrix_dict[key_1][key_2])
-        return result
-
-    def _to_reduced_matrix(self):
-        result = self._to_matrix()
-        i: int = 0
-        while i < len(result):
-            j: int = i + 1
-            while j < len(result[i]):
-                del result[i][j]
-            i += 1
-        return result
 
     def max_edges(self):
         result: int = 0
@@ -174,6 +150,57 @@ class Graph:
             if current_k != previous_k and previous_k is not None:
                 return False
         return True
+
+    def _to_dict(self):
+        matrix_dict: dict = {}
+        for node_1 in self.nodes.values():
+            matrix_dict[node_1.id] = {}
+            for node_2 in self.nodes.values():
+                matrix_dict[node_1.id][node_2.id] = 0
+
+        for edge in self.edges.values():
+            matrix_dict[edge.source.id][edge.target.id] = 1
+            matrix_dict[edge.target.id][edge.source.id] = 1
+        return matrix_dict
+
+    def _to_matrix(self):
+        matrix_dict = self._to_dict()
+
+        result: list = []
+        for key_1 in matrix_dict:
+            result.append([1])
+            for key_2 in matrix_dict[key_1]:
+                result[len(result) - 1].append(matrix_dict[key_1][key_2])
+        return result
+
+    def _to_reduced_matrix(self):
+        result = self._to_matrix()
+        i: int = 0
+        while i < len(result):
+            j: int = i + 1
+            while j < len(result[i]):
+                del result[i][j]
+            i += 1
+        return result
+
+    @staticmethod
+    def from_dict(input_data: dict):
+        graph: Graph = Graph()
+        for node_dict in input_data['nodes']:
+            node: Node = Node.from_dict(node_dict)
+            graph.add_node(node)
+        if 'edges' in input_data:
+            for edge_dict in input_data['edges']:
+                graph.create_edge_from_dict(edge_dict)
+        return graph
+
+    @staticmethod
+    def load_from_json(path: str = 'data/graph.json'):
+        with open(path, "r") as f:
+            file_content = f.read()
+        if file_content is None:
+            file_content = '{}'
+        return Graph.from_dict(json.loads(file_content))
 
     @staticmethod
     def generate_cyclic(n: int):

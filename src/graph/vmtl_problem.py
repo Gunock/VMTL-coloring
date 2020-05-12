@@ -14,16 +14,30 @@ class VmtlProblem:
         self._graph: Graph = graph
         self._setup_problem()
 
-    @staticmethod
-    def binomial(n, k):  # better version - we don't need two products!
-        if not 0 <= k <= n:
-            return 0
-        b = 1
-        for t in range(min(k, n - k)):
-            b *= n
-            b /= t + 1
-            n -= 1
-        return int(b)
+    def get_solution(self) -> Graph:
+        solution: dict = self._problem.getSolution()
+        if not self._graph.is_cyclic():
+            print('k=' + str(solution['k']))
+        return self._solution_to_graph(solution)
+
+    def _setup_problem(self) -> None:
+        self._problem = constraint.Problem()
+        if not self._graph.is_cyclic():
+            VmtlProblem._add_k_variable(self._problem, self._graph)
+        VmtlProblem._add_graph_to_problem(self._problem, self._graph)
+        VmtlProblem._add_vmtl_constraints_to_problem(self._problem, self._graph)
+
+    def _solution_to_graph(self, solution: dict) -> Graph:
+        result: Graph = self._graph
+        for key in solution:
+            if 'k' in key:
+                continue
+            element_id = int(re.search(r'[0-9]+', key).group())
+            if 'n' in key:
+                result.set_node_label(element_id, str(solution[key]))
+            elif 'e' in key:
+                result.set_edge_label(element_id, str(solution[key]))
+        return result
 
     @staticmethod
     def get_k_range(graph: Graph) -> list:
@@ -33,10 +47,21 @@ class VmtlProblem:
         max_edges = graph.max_edges()
         k_max = ((max_edges + 1) * vertex_edge_count - sum(range(1, max_edges + 1))) + 1
 
-        left_side = VmtlProblem.binomial(vertex_edge_count + 1, 2) + VmtlProblem.binomial(edge_count + 1, 2)
-        right_side = 2 * VmtlProblem.binomial(vertex_edge_count + 1, 2) + VmtlProblem.binomial(vertex_count + 1, 2)
+        left_side = VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(edge_count + 1, 2)
+        right_side = 2 * VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(vertex_count + 1, 2)
 
         return [i for i in range(sum(range(1, max_edges + 1)), k_max) if left_side <= i * vertex_count <= right_side]
+
+    @staticmethod
+    def _binomial(n, k):  # better version - we don't need two products!
+        if not 0 <= k <= n:
+            return 0
+        b = 1
+        for t in range(min(k, n - k)):
+            b *= n
+            b /= t + 1
+            n -= 1
+        return int(b)
 
     @staticmethod
     def _add_graph_to_problem(problem: constraint.Problem, graph: Graph) -> None:
@@ -127,28 +152,3 @@ class VmtlProblem:
                 if not graph.is_cyclic():
                     # k for pair of vertices is the same
                     VmtlProblem._add_vertex_pair_k_constraint(problem, node_1, node_2)
-
-    def _setup_problem(self) -> None:
-        self._problem = constraint.Problem()
-        if not self._graph.is_cyclic():
-            VmtlProblem._add_k_variable(self._problem, self._graph)
-        VmtlProblem._add_graph_to_problem(self._problem, self._graph)
-        VmtlProblem._add_vmtl_constraints_to_problem(self._problem, self._graph)
-
-    def _solution_to_graph(self, solution: dict) -> Graph:
-        result: Graph = self._graph
-        for key in solution:
-            if 'k' in key:
-                continue
-            element_id = int(re.search(r'[0-9]+', key).group())
-            if 'n' in key:
-                result.set_node_label(element_id, str(solution[key]))
-            elif 'e' in key:
-                result.set_edge_label(element_id, str(solution[key]))
-        return result
-
-    def get_solution(self) -> Graph:
-        solution: dict = self._problem.getSolution()
-        if not self._graph.is_cyclic():
-            print('k=' + str(solution['k']))
-        return self._solution_to_graph(solution)
