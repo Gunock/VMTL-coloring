@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, send_from_directory
 
 app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app2 = Flask(__name__)
 
 
 class Node:
@@ -35,8 +36,8 @@ class Graph:
         }
         for x in range(len(self.nodes)):
             new_node = {
-                "id": "n"+str(x),
-                "label": "Node"+str(x),
+                "id": "n"+str(x+1),
+                "label": "Node"+str(x+1),
                 "x": int(self.nodes[x].x_pos),
                 "y": int(self.nodes[x].y_pos),
                 "size": 2
@@ -44,9 +45,9 @@ class Graph:
             dictionary["nodes"].append(new_node)
         for x in range(len(self.edges)):
             new_edge = {
-                "id": "e"+str(x),
-                "source": self.edges[x].id_1,
-                "target": self.edges[x].id_2
+                "id": "e"+str(x+1),
+                "source": "n" + self.edges[x].id_1,
+                "target": "n" + self.edges[x].id_2
             }
             dictionary["edges"].append(new_edge)
         f = open('data/graph.json', "w")
@@ -85,10 +86,42 @@ def add_edge():
     return render_template("index.html", last_updated=dir_last_updated('data'))
 
 
+@app.route("/clearGraph", methods=["POST"])
+def clear_graph():
+    open('data/graph.json', 'w').close()
+    return render_template("index.html", last_updated=dir_last_updated('data'))
+
+
 @app.route('/data/graph.json')
 def data():
     return send_from_directory('data', 'graph.json')
 
 
+@app2.route("/")
+def index():
+    return render_template("graph-editor.html")
+
+
+@app2.route("/node", methods=["POST"])
+def add_node2():
+    n = Node(request.json['x'], request.json['y'])
+    graph.add_node(n)
+    return render_template("graph-editor.html")
+
+
+@app2.route("/edge", methods=["POST"])
+def add_edge2():
+    e = Edge(request.json['source'], request.json['target'])
+    graph.add_edge(e)
+    return render_template("graph-editor.html")
+
+
+@app2.route("/result", methods=["POST"])
+def save_graph():
+    graph.save_as_json()
+    return render_template("graph-editor.html")
+
+
 if __name__ == "__main__":
-    app.run()
+    # app.run()
+    app2.run()
