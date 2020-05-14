@@ -4,21 +4,21 @@ from src.graph.graph import Graph
 from src.graph.vmtl_problem import VmtlProblem
 
 
-def main():
-    graph = Graph()
-    graph.add_edge(1, 2)
-    graph.add_edge(2, 3)
-    graph.add_edge(3, 4)
-    graph.add_edge(4, 5)
-    graph.add_edge(5, 1)
-
-    vmtl_problem = VmtlProblem(graph)
+def benchmark_path_graph(n: int):
+    print()
+    print('graph vertex count = ' + str(n))
+    graph = Graph.generate_path(n)
 
     time_start = time.time()
-    solution: dict = vmtl_problem.get_solution()
+    solution: Graph = VmtlProblem(graph).get_solution()
     print('time: ' + str(round(time.time() - time_start, 3)) + 's')
     print('time: ' + str(round(time.time() - time_start, 5) * 1000) + 'ms')
-    print(dict(sorted(solution.items())))
+
+
+def main():
+    benchmark_path_graph(4)
+    benchmark_path_graph(5)
+    benchmark_path_graph(6)
 
 
 if __name__ == '__main__':

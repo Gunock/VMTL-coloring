@@ -1,30 +1,105 @@
+import re
+
 import constraint
+from constraint import ExactSumConstraint
 
 from src.graph.graph import Graph
 from src.graph.node import Node
 
 
 class VmtlProblem:
-    _problem = constraint.Problem()
 
     def __init__(self, graph: Graph):
-        self._setup_problem(graph)
+        self._problem = constraint.Problem()
+        self._graph: Graph = graph
+        self._setup_problem()
+
+    def get_solution(self) -> Graph:
+        solution: dict = self._problem.getSolution()
+        if not self._graph.is_cyclic():
+            print('k=' + str(solution['k']))
+        return self._solution_to_graph(solution)
+
+    def _setup_problem(self) -> None:
+        self._problem = constraint.Problem()
+        if not self._graph.is_cyclic():
+            VmtlProblem._add_k_variable(self._problem, self._graph)
+        VmtlProblem._add_graph_to_problem(self._problem, self._graph)
+        VmtlProblem._add_vmtl_constraints_to_problem(self._problem, self._graph)
+
+    def _solution_to_graph(self, solution: dict) -> Graph:
+        result: Graph = self._graph
+        for key in solution:
+            if 'k' in key:
+                continue
+            element_id = int(re.search(r'[0-9]+', key).group())
+            if 'n' in key:
+                result.set_node_label(element_id, str(solution[key]))
+            elif 'e' in key:
+                result.set_edge_label(element_id, str(solution[key]))
+        return result
+
+    @staticmethod
+    def get_k_range(graph: Graph) -> list:
+        vertex_count = len(graph.nodes)
+        edge_count = len(graph.edges)
+        vertex_edge_count = vertex_count + edge_count
+        max_edges = graph.max_edges()
+        k_max = ((max_edges + 1) * vertex_edge_count - sum(range(1, max_edges + 1))) + 1
+
+        left_side = VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(edge_count + 1, 2)
+        right_side = 2 * VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(vertex_count + 1, 2)
+
+        return [i for i in range(sum(range(1, max_edges + 1)), k_max) if left_side <= i * vertex_count <= right_side]
+
+    @staticmethod
+    def _binomial(n, k):  # better version - we don't need two products!
+        if not 0 <= k <= n:
+            return 0
+        b = 1
+        for t in range(min(k, n - k)):
+            b *= n
+            b /= t + 1
+            n -= 1
+        return int(b)
 
     @staticmethod
     def _add_graph_to_problem(problem: constraint.Problem, graph: Graph) -> None:
-        variable_names = []
         vertex_edge_count = len(graph.edges) + len(graph.nodes)
         colors = [i for i in range(1, vertex_edge_count + 1)]
+
         for node in graph.nodes.values():
-            variable_names.append('v' + str(node))
-            problem.addVariable('v' + str(node), colors)
+            problem.addVariable('n' + str(node), colors)
 
         for edge in graph.edges:
-            variable_names.append('e' + str(edge))
             problem.addVariable('e' + str(edge), colors)
 
     @staticmethod
-    def _add_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:
+    def _add_k_variable(problem: constraint.Problem, graph: Graph):
+        possible_k = VmtlProblem.get_k_range(graph)
+        if graph.is_complete():
+            possible_k = list(filter(lambda elem: elem % 4 == 0, possible_k))
+        problem.addVariable('k', possible_k)
+
+    @staticmethod
+    def _add_k_constraint(problem: constraint.Problem, graph: Graph) -> None:
+        for node in graph.nodes.values():
+            node_edges = ['e' + str(edge) for edge in node.edges]
+            if graph.is_cyclic():
+                vertex_count = len(graph.nodes)
+                known_k = 0
+                if vertex_count % 2 == 1:
+                    known_k = 3 * vertex_count + 1
+                elif vertex_count % 4 == 2:
+                    known_k = 2.5 * vertex_count + 2
+                elif vertex_count % 4 == 0:
+                    known_k = 3 * vertex_count
+                problem.addConstraint(ExactSumConstraint(int(known_k)), ['n' + str(node)] + node_edges)
+            else:
+                problem.addConstraint(lambda v, k, *e: v + sum(e) == k, ['n' + str(node), 'k'] + node_edges)
+
+    @staticmethod
+    def _add_vertex_pair_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:
         # k for two vertices is same
         node_1_edges = [str(edge) for edge in node_1.edges]
         node_2_edges = [str(edge) for edge in node_2.edges]
@@ -36,67 +111,44 @@ class VmtlProblem:
             condition += 'e1_' + edge + ', '
         for edge in node_2_edges:
             condition += 'e2_' + edge + ', '
-        condition += 'v' + str(1) + ', '
-        condition += 'v' + str(2) + ': '
+        condition += 'n' + str(1) + ', '
+        condition += 'n' + str(2) + ': '
 
         # Add lambda body
 
         # k of first node and it's edges
         for edge in node_1_edges:
             condition += 'e1_' + str(edge) + ' + '
-        condition += 'v' + str(1)
+        condition += 'n' + str(1)
 
         condition += ' == '
 
         # k of second node and it's edges
         for edge in node_2_edges:
             condition += 'e2_' + edge + ' + '
-        condition += 'v' + str(2)
+        condition += 'n' + str(2)
 
         # Create list of constraint variables
         variables = ['e' + edge for edge in node_1_edges]
         variables += ['e' + edge for edge in node_2_edges]
-        variables += ['v' + str(node_1), 'v' + str(node_2)]
+        variables += ['n' + str(node_1), 'n' + str(node_2)]
 
         problem.addConstraint(eval(condition), variables)
 
     @staticmethod
     def _add_vmtl_constraints_to_problem(problem: constraint.Problem, graph: Graph) -> None:
+        node_variables: list = ['n' + str(node) for node in graph.nodes]
+        edge_variables: list = ['e' + str(edge) for edge in graph.edges]
+        problem.addConstraint(constraint.AllDifferentConstraint(), node_variables + edge_variables)
 
-        for edge_1 in graph.edges:
-            for edge_2 in graph.edges:
-                # Prevents duplicate constraints
-                if edge_1 == edge_2:
-                    break
-
-                # Pair of edges have different labels
-                problem.addConstraint(lambda e_1, e_2: e_1 != e_2, ['e' + str(edge_1), 'e' + str(edge_2)])
-
+        # vertex and it's edge count equals k
+        VmtlProblem._add_k_constraint(problem, graph)
         for node_1 in graph.nodes.values():
-            for edge in graph.edges:
-                problem.addConstraint(lambda v, e: v != e, ['v' + str(node_1), 'e' + str(edge)])
-
             for node_2 in graph.nodes.values():
                 # Prevents duplicate constraints
                 if node_1 == node_2:
                     break
 
-                # Pair of vertices have different labels
-                problem.addConstraint(lambda v_1, v_2: v_1 != v_2, ['v' + str(node_1), 'v' + str(node_2)])
-
-                # k for pair of vertices is the same
-                VmtlProblem._add_k_constraint(problem, node_1, node_2)
-
-    def _setup_problem(self, graph: Graph) -> None:
-        self._problem = constraint.Problem()
-
-        VmtlProblem._add_graph_to_problem(self._problem, graph)
-        VmtlProblem._add_vmtl_constraints_to_problem(self._problem, graph)
-
-    def get_solution(self) -> dict:
-        solution: dict = self._problem.getSolution()
-        return solution
-
-    def get_solutions(self) -> dict:
-        solution: dict = self._problem.getSolutions()
-        return solution
+                if not graph.is_cyclic():
+                    # k for pair of vertices is the same
+                    VmtlProblem._add_vertex_pair_k_constraint(problem, node_1, node_2)
