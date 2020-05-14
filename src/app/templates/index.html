@@ -14,7 +14,7 @@
 <body>
 <div id='container'>
     <div id='options'>
-        <div id='vertex'>Wierzchołki<br><br>
+        <div id='graph-edit'>Wierzchołki<br><br>
             <form action="addNode" method="post">
                 <label for="v_id">ID:</label><br>
                 <input id="v_id" name="v_id" type="text"><br>
@@ -34,11 +34,11 @@
                 <input type="submit" value="Dodaj krawędź">
             </form>
         </div>
-        <div id='result'>
+        <div id='actions'>
+            <form action="clearGraph" method="post">
+                <input type="submit" value="Wyczyść graf"/>
+            </form>
             <form action="solveVmtl" method="get">
-                <form action="clearGraph" method="post">
-                    <input type="submit" value="Wyczyść graf"/>
-                </form>
                 <button id="vmtl" onclick="printGraph()">Rozwiązanie</button>
             </form>
         </div>

@@ -13,7 +13,7 @@ body {
     clear: both;
 }
 
-#vertex {
+#graph-edit {
     float: left;
     width: 25%;
 }
@@ -23,7 +23,7 @@ body {
     width: 25%;
 }
 
-#result {
+#actions {
     float: left;
     width: 20%;
 }

@@ -43,15 +43,21 @@ def add_edge():
 
 @app.route("/clearGraph", methods=["POST"])
 def clear_graph():
+    global graph
+
     open('data/graph.json', 'w').close()
+    graph = Graph()
     return render_template("index.html", last_updated=dir_last_updated('data'))
 
 
 @app.route("/solveVmtl", methods=["GET"])
 def solve_vmtl():
-    problem = VmtlProblem(graph)
-    temp_graph = problem.get_solution()
-    temp_graph.save_as_json()
+    try:
+        problem = VmtlProblem(graph)
+        temp_graph = problem.get_solution()
+        temp_graph.save_as_json()
+    except ValueError:
+        pass
     return render_template("index.html", last_updated=dir_last_updated('data'))
 
 
