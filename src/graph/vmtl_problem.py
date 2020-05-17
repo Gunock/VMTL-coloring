@@ -1,7 +1,6 @@
 import re
 
 import constraint
-from constraint import ExactSumConstraint
 
 from src.graph.graph import Graph
 from src.graph.node import Node
@@ -16,14 +15,11 @@ class VmtlProblem:
 
     def get_solution(self) -> Graph:
         solution: dict = self._problem.getSolution()
-        if not self._graph.is_cyclic():
-            print('k=' + str(solution['k']))
         return self._solution_to_graph(solution)
 
     def _setup_problem(self) -> None:
         self._problem = constraint.Problem()
-        if not self._graph.is_cyclic():
-            VmtlProblem._add_k_variable(self._problem, self._graph)
+        VmtlProblem._add_k_variable(self._problem, self._graph)
         VmtlProblem._add_graph_to_problem(self._problem, self._graph)
         VmtlProblem._add_vmtl_constraints_to_problem(self._problem, self._graph)
 
@@ -37,10 +33,11 @@ class VmtlProblem:
                 result.set_node_label(element_id, str(solution[key]))
             elif 'e' in key:
                 result.set_edge_label(element_id, str(solution[key]))
+        result.k = solution['k']
         return result
 
     @staticmethod
-    def get_k_range(graph: Graph) -> list:
+    def _get_k_range(graph: Graph) -> list:
         vertex_count = len(graph.nodes)
         edge_count = len(graph.edges)
         vertex_edge_count = vertex_count + edge_count
@@ -76,27 +73,29 @@ class VmtlProblem:
 
     @staticmethod
     def _add_k_variable(problem: constraint.Problem, graph: Graph):
-        possible_k = VmtlProblem.get_k_range(graph)
-        if graph.is_complete():
-            possible_k = list(filter(lambda elem: elem % 4 == 0, possible_k))
+        possible_k = []
+        if graph.is_cyclic():
+            vertex_count = len(graph.nodes)
+            known_k = 0
+            if vertex_count % 2 == 1:
+                known_k = 3 * vertex_count + 1
+            elif vertex_count % 4 == 2:
+                known_k = 2.5 * vertex_count + 2
+            elif vertex_count % 4 == 0:
+                known_k = 3 * vertex_count
+            possible_k = [known_k]
+        else:
+            possible_k = VmtlProblem._get_k_range(graph)
+            if graph.is_complete():
+                possible_k = list(filter(lambda elem: elem % 4 == 0, possible_k))
+
         problem.addVariable('k', possible_k)
 
     @staticmethod
     def _add_k_constraint(problem: constraint.Problem, graph: Graph) -> None:
         for node in graph.nodes.values():
             node_edges = ['e' + str(edge) for edge in node.edges]
-            if graph.is_cyclic():
-                vertex_count = len(graph.nodes)
-                known_k = 0
-                if vertex_count % 2 == 1:
-                    known_k = 3 * vertex_count + 1
-                elif vertex_count % 4 == 2:
-                    known_k = 2.5 * vertex_count + 2
-                elif vertex_count % 4 == 0:
-                    known_k = 3 * vertex_count
-                problem.addConstraint(ExactSumConstraint(int(known_k)), ['n' + str(node)] + node_edges)
-            else:
-                problem.addConstraint(lambda v, k, *e: v + sum(e) == k, ['n' + str(node), 'k'] + node_edges)
+            problem.addConstraint(lambda v, k, *e: v + sum(e) == k, ['n' + str(node), 'k'] + node_edges)
 
     @staticmethod
     def _add_vertex_pair_k_constraint(problem: constraint.Problem, node_1: Node, node_2: Node) -> None:

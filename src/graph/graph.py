@@ -11,6 +11,7 @@ class Graph:
     def __init__(self):
         self.edges: Dict[int, Edge] = {}
         self.nodes: Dict[int, Node] = {}
+        self.k: int = -1
         self._lock = Lock()
 
     def __repr__(self):
@@ -76,12 +77,16 @@ class Graph:
             self.nodes[node_id].label = label
 
     def set_edge_label(self, edge_id: int, label: str):
-        if edge_id in self.edges:
-            self.edges[edge_id].label = label
+        if edge_id not in self.edges:
+            return
+
+        self.edges[edge_id].label = label
         for i in range(0, len(self.nodes[self.edges[edge_id].source.id].edges)):
-            self.nodes[self.edges[edge_id].source.id].edges[i].label = label
+            if self.nodes[self.edges[edge_id].source.id].edges[i].id == edge_id:
+                self.nodes[self.edges[edge_id].source.id].edges[i].label = label
         for i in range(0, len(self.nodes[self.edges[edge_id].target.id].edges)):
-            self.nodes[self.edges[edge_id].target.id].edges[i].label = label
+            if self.nodes[self.edges[edge_id].target.id].edges[i].id == edge_id:
+                self.nodes[self.edges[edge_id].target.id].edges[i].label = label
 
     def max_edges(self):
         result: int = 0
