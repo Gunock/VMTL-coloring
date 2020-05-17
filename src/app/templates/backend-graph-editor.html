@@ -1,0 +1,87 @@
+<html lang="en">
+<head>
+    <title>VMTL Coloring - Backend Editor</title>
+
+    <script src="../static/sigma-deps/sigma.min.js"></script>
+    <script src="../static/sigma-deps/sigma.parsers.json.js"></script>
+    <script src="../static/sigma-deps/settings.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.def.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.curve.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.curvedArrow.js"></script>
+
+    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" rel="stylesheet">
+    <link href="../static/backend-style.css" rel="stylesheet" type="text/css">
+</head>
+<body class="bg-dark">
+<nav class="navbar navbar-expand-sm bg-dark">
+    <form action="solve-vmtl" class="mr-1" method="get">
+        <input class="btn btn-success" type="submit" value="Solve VMTL"/>
+    </form>
+    <form action="clear-graph" class="mr-1" method="post">
+        <input class="btn btn-danger" type="submit" value="Clear"/>
+    </form>
+    <a class="btn btn-primary mr-1" href='/frontend-editor' role="button">Frontend editor</a>
+</nav>
+<div class="bg-light">
+    <div class="container bg-light">
+        <div class="row">
+            <div class="col-sm-6">
+                <h2>Vertices</h2>
+                <form action="add-node" method="post">
+
+                    <div class="form-group">
+                        <label for="v_id">Node ID</label><br>
+                        <input class="form-control" id="v_id" name="v_id" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="x_pos">X</label><br>
+                        <input class="form-control" id="x_pos" name="x_pos" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="y_pos">Y</label><br>
+                        <input class="form-control" id="y_pos" name="y_pos" type="text">
+                    </div>
+                    <input class="btn btn-primary" id="s_1" type="submit" value="Add vertex">
+                </form>
+            </div>
+            <div class="col-sm-6">
+                <h2>Edges</h2>
+                <form action="add-edge" method="post">
+                    <div class="form-group">
+                        <label for="id_1">Source node ID</label>
+                        <input class="form-control" id="id_1" name="id_1" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="id_2">Target node ID</label><br>
+                        <input class="form-control" id="id_2" name="id_2" type="text">
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Add edge">
+                </form>
+            </div>
+        </div>
+        <br>
+    </div>
+</div>
+<div id='graph-container'></div>
+<script>
+    s = sigma.parsers.json('../data/graph.json', {
+        container: 'sigma-container',
+        renderer: {
+            container: document.getElementById('graph-container'),
+            type: 'canvas'
+        },
+        settings: {
+            autoRescale: false,
+            labelThreshold: 1,
+            defaultLabelSize: 50,
+            labelSize: 'fixed',
+            edgeLabelThreshold: 1,
+            defaultEdgeLabelSize: 50,
+            edgeLabelSize: 'fixed',
+            defaultNodeColor: '#ec5148'
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+#graph-container {
+    background: #fff;
+    height: 600px;
+    max-width: 1500px;
+    margin: auto;
+    position: relative;
+    overflow: hidden;
+}
+
+#graph-edit {
+    float: left;
+    width: 25%;
+}
+
+form {
+    margin: 0;
+}

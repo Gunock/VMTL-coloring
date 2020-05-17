@@ -7,6 +7,7 @@ class Node:
         self.id: int = node_id
         self.x: float = x
         self.y: float = y
+        self.size: int = 10
         self.label: str = ''
 
     def __eq__(self, other):
@@ -24,7 +25,9 @@ class Node:
             'label': self.label,
             'x': self.x,
             'y': self.y,
-            'size': 10
+            'dX': 0,
+            'dY': 0,
+            'size': self.size
         }
 
     def is_connected(self, other):
@@ -36,6 +39,7 @@ class Node:
     @staticmethod
     def from_dict(node_dict: dict):
         node = Node(int(re.search(r'[0-9]+', node_dict['id']).group()), float(node_dict['x']), float(node_dict['y']))
+        node.size = node_dict['size']
         if 'label' in node_dict:
             node.label = node_dict['label']
         return node
