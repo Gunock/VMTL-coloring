@@ -63,6 +63,10 @@ class Graph:
         if edge_2 not in self.nodes[node_2.id].edges:
             self.nodes[node_2.id].edges.append(edge_2)
 
+    def create_node(self, x_pos: float, y_pos: float):
+        node = Node(len(self.nodes) + 1, x_pos, y_pos)
+        self.add_node(node)
+
     def add_node(self, node: Node):
         self._lock.acquire()
         if node not in self.nodes.values():

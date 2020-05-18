@@ -1,10 +1,7 @@
-import re
-
-
 class Node:
-    def __init__(self, node_id: str, x: float = 0, y: float = 0):
+    def __init__(self, node_id: int, x: float = 0, y: float = 0):
         self.edges: list = []
-        self.id: int = int(re.search(r'[0-9]+', node_id).group())
+        self.id: int = node_id
         self.x: float = x
         self.y: float = y
         self.size: int = 10

@@ -5,7 +5,6 @@ from pathlib import Path
 from flask import Flask, render_template, send_from_directory, request, Response, jsonify
 
 from src.graph.graph import Graph
-from src.graph.node import Node
 from src.graph.vmtl_problem import VmtlProblem
 
 app = Flask(__name__)
@@ -25,6 +24,7 @@ def dir_last_updated(folder):
 @app.route("/")
 def backend_index():
     global graph, graph_file_path
+
     graph.save_as_json(graph_file_path, id_as_label=True)
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
@@ -32,8 +32,8 @@ def backend_index():
 @app.route("/add-node", methods=["POST"])
 def backend_add_node():
     global graph, graph_file_path
-    n = Node(request.form['v_id'], float(request.form['x_pos']), float(request.form['y_pos']))
-    graph.add_node(n)
+
+    graph.create_node(float(request.form['x_pos']), float(request.form['y_pos']))
     graph.save_as_json(graph_file_path, id_as_label=True)
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
@@ -41,6 +41,7 @@ def backend_add_node():
 @app.route("/add-edge", methods=["POST"])
 def backend_add_edge():
     global graph, graph_file_path
+
     graph.create_edge(int(request.form['id_1']), int(request.form['id_2']))
     graph.save_as_json(graph_file_path, id_as_label=True)
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
@@ -82,7 +83,7 @@ def frontend_add_node():
     global graph
 
     node: dict = json.loads(request.data)
-    graph.add_node(Node.from_dict(node))
+    graph.create_node(float(node['x']), float(node['y']))
     return Response(status=201)
 
 
