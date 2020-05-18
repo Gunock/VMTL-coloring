@@ -10,7 +10,7 @@ def benchmark_cyclic_graph(n: int):
     graph = Graph.generate_cyclic(n)
 
     time_start = time.time()
-    solution: Graph = VmtlProblem(graph).get_solution()
+    VmtlProblem(graph).get_solution()
     print('time: ' + str(round(time.time() - time_start, 3)) + 's')
     print('time: ' + str(round(time.time() - time_start, 5) * 1000) + 'ms')
 

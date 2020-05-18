@@ -1,5 +1,6 @@
 import json
 import re
+from threading import Lock
 from typing import List, Dict
 
 from src.graph.edge import Edge
@@ -10,13 +11,11 @@ class Graph:
     def __init__(self):
         self.edges: Dict[int, Edge] = {}
         self.nodes: Dict[int, Node] = {}
-        self.marker: tuple = ()
+        self.k: int = -1
+        self._lock = Lock()
 
     def __repr__(self):
         return str(self.to_dict())
-
-    def add_marker(self, name: str, value):
-        self.marker: tuple = (name, value)
 
     def to_dict(self) -> dict:
         return {
@@ -29,11 +28,13 @@ class Graph:
             f.write(json.dumps(self.to_dict()))
 
     def create_edge_from_dict(self, edge_dict: dict) -> None:
+        self._lock.acquire()
         source_id = int(re.search(r'[0-9]+', edge_dict['source']).group())
         target_id = int(re.search(r'[0-9]+', edge_dict['target']).group())
         self.create_edge(source_id, target_id)
         if 'label' in edge_dict:
             self.set_edge_label(len(self.edges), edge_dict['label'])
+        self._lock.release()
 
     def create_edge(self, node_1_id: int, node_2_id: int):
         if node_1_id not in self.nodes or node_2_id not in self.nodes:
@@ -63,23 +64,29 @@ class Graph:
             self.nodes[node_2.id].edges.append(edge_2)
 
     def add_node(self, node: Node):
+        self._lock.acquire()
         if node not in self.nodes.values():
             self.nodes[node.id] = node
         else:
             self.nodes[node.id].x = node.x
             self.nodes[node.id].y = node.y
+        self._lock.release()
 
     def set_node_label(self, node_id: int, label: str):
         if node_id in self.nodes:
             self.nodes[node_id].label = label
 
     def set_edge_label(self, edge_id: int, label: str):
-        if edge_id in self.edges:
-            self.edges[edge_id].label = label
+        if edge_id not in self.edges:
+            return
+
+        self.edges[edge_id].label = label
         for i in range(0, len(self.nodes[self.edges[edge_id].source.id].edges)):
-            self.nodes[self.edges[edge_id].source.id].edges[i].label = label
+            if self.nodes[self.edges[edge_id].source.id].edges[i].id == edge_id:
+                self.nodes[self.edges[edge_id].source.id].edges[i].label = label
         for i in range(0, len(self.nodes[self.edges[edge_id].target.id].edges)):
-            self.nodes[self.edges[edge_id].target.id].edges[i].label = label
+            if self.nodes[self.edges[edge_id].target.id].edges[i].id == edge_id:
+                self.nodes[self.edges[edge_id].target.id].edges[i].label = label
 
     def max_edges(self):
         result: int = 0
@@ -113,9 +120,6 @@ class Graph:
         return True
 
     def is_path(self) -> bool:
-        if len(self.marker) != 0 and self.marker[0] == 'is_path' and self.marker[1] == True:
-            return True
-
         if len(self.edges) != len(self.nodes) - 1:
             return False
 

@@ -26,6 +26,5 @@ class Edge:
             'id': 'e' + str(self.id),
             'source': 'n' + str(self.source),
             'target': 'n' + str(self.target),
-            'label': self.label,
-            'size': 10
+            'label': self.label
         }

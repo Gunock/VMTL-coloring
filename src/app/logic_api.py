@@ -1,7 +1,8 @@
+import json
 import os
 from pathlib import Path
 
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, send_from_directory, request, Response, jsonify
 
 from src.graph.graph import Graph
 from src.graph.node import Node
@@ -11,6 +12,8 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 graph = Graph()
+Path("data").mkdir(parents=True, exist_ok=True)
+graph_file_path: str = 'data/graph.json'
 
 
 def dir_last_updated(folder):
@@ -20,33 +23,95 @@ def dir_last_updated(folder):
 
 
 @app.route("/")
-def index():
-    Path("data").mkdir(parents=True, exist_ok=True)
-    open('data/graph.json', 'w').close()
-    return render_template("index.html", last_updated=dir_last_updated('data'))
+def backend_index():
+    global graph, graph_file_path
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
-@app.route("/addNode", methods=["POST"])
-def add_node():
+@app.route("/add-node", methods=["POST"])
+def backend_add_node():
+    global graph, graph_file_path
     n = Node(int(request.form['v_id']), float(request.form['x_pos']), float(request.form['y_pos']))
     graph.add_node(n)
-    graph.save_as_json()
-    return render_template("index.html", last_updated=dir_last_updated('data'))
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
-@app.route("/addEdge", methods=["POST"])
-def add_edge():
+@app.route("/add-edge", methods=["POST"])
+def backend_add_edge():
+    global graph, graph_file_path
     graph.create_edge(int(request.form['id_1']), int(request.form['id_2']))
-    graph.save_as_json()
-    return render_template("index.html", last_updated=dir_last_updated('data'))
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
-@app.route("/solveVmtl", methods=["GET"])
-def solve_vmtl():
-    problem = VmtlProblem(graph)
-    temp_graph = problem.get_solution()
-    temp_graph.save_as_json()
-    return render_template("index.html", last_updated=dir_last_updated('data'))
+@app.route("/clear-graph", methods=["POST"])
+def backend_clear_graph():
+    global graph, graph_file_path
+
+    graph = Graph()
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
+
+
+@app.route("/solve-vmtl", methods=["GET"])
+def backend_solve_vmtl():
+    global graph, graph_file_path
+
+    try:
+        problem = VmtlProblem(graph)
+        graph = problem.get_solution()
+        graph.save_as_json(graph_file_path)
+    except ValueError:
+        pass
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
+
+
+@app.route("/frontend-editor", methods=["GET"])
+def frontend_index():
+    global graph, graph_file_path
+
+    graph.save_as_json(graph_file_path)
+    return render_template("frontend-graph-editor.html")
+
+
+@app.route("/frontend-editor/add-node", methods=["POST"])
+def frontend_add_node():
+    global graph
+
+    node: dict = json.loads(request.data)
+    graph.add_node(Node.from_dict(node))
+    return Response(status=201)
+
+
+@app.route("/frontend-editor/add-edge", methods=["POST"])
+def frontend_add_edge():
+    global graph
+
+    edge: dict = json.loads(request.data)
+    graph.create_edge_from_dict(edge)
+    return Response(status=201)
+
+
+@app.route("/frontend-editor/solve-vmtl", methods=["GET"])
+def frontend_solve_vmtl():
+    global graph
+
+    solution_graph: dict = {}
+    try:
+        solution_graph = VmtlProblem(graph).get_solution().to_dict()
+    except ValueError:
+        pass
+    return jsonify(solution_graph)
+
+
+@app.route("/frontend-editor/clear-graph", methods=["POST"])
+def frontend_clear_graph():
+    global graph
+
+    graph = Graph()
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
 @app.route('/data/graph.json')
