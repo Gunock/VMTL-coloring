@@ -21,10 +21,14 @@ class Edge:
     def __repr__(self):
         return str(self.id)
 
-    def to_dict(self) -> dict:
+    def to_dict(self, id_as_label: bool = False) -> dict:
+        if id_as_label:
+            label = 'e' + str(self.id)
+        else:
+            label = self.label
         return {
             'id': 'e' + str(self.id),
             'source': 'n' + str(self.source),
             'target': 'n' + str(self.target),
-            'label': self.label
+            'label': label
         }
