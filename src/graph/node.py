@@ -1,6 +1,3 @@
-import re
-
-
 class Node:
     def __init__(self, node_id: int, x: float = 0, y: float = 0):
         self.edges: list = []
@@ -19,10 +16,14 @@ class Node:
     def __repr__(self):
         return str(self.id)
 
-    def to_dict(self) -> dict:
+    def to_dict(self, id_as_label: bool) -> dict:
+        if id_as_label:
+            label = 'n' + str(self.id)
+        else:
+            label = self.label
         return {
             'id': 'n' + str(self.id),
-            'label': self.label,
+            'label': label,
             'x': self.x,
             'y': self.y,
             'dX': 0,
@@ -38,7 +39,7 @@ class Node:
 
     @staticmethod
     def from_dict(node_dict: dict):
-        node = Node(int(re.search(r'[0-9]+', node_dict['id']).group()), float(node_dict['x']), float(node_dict['y']))
+        node = Node(node_dict['id'], float(node_dict['x']), float(node_dict['y']))
         node.size = node_dict['size']
         if 'label' in node_dict:
             node.label = node_dict['label']

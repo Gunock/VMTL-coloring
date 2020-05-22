@@ -17,15 +17,15 @@ class Graph:
     def __repr__(self):
         return str(self.to_dict())
 
-    def to_dict(self) -> dict:
+    def to_dict(self, id_as_label: bool = False) -> dict:
         return {
-            "nodes": [node.to_dict() for node in self.nodes.values()],
-            "edges": [edge.to_dict() for edge in self.edges.values()]
+            "nodes": [node.to_dict(id_as_label) for node in self.nodes.values()],
+            "edges": [edge.to_dict(id_as_label) for edge in self.edges.values()]
         }
 
-    def save_as_json(self, path: str = 'data/graph.json') -> None:
+    def save_as_json(self, path: str = 'data/graph.json', id_as_label: bool = False) -> None:
         with open(path, "w+") as f:
-            f.write(json.dumps(self.to_dict()))
+            f.write(json.dumps(self.to_dict(id_as_label)))
 
     def create_edge_from_dict(self, edge_dict: dict) -> None:
         self._lock.acquire()
@@ -62,6 +62,10 @@ class Graph:
         # check if edge is already in connected nodes
         if edge_2 not in self.nodes[node_2.id].edges:
             self.nodes[node_2.id].edges.append(edge_2)
+
+    def create_node(self, x_pos: float, y_pos: float):
+        node = Node(len(self.nodes) + 1, x_pos, y_pos)
+        self.add_node(node)
 
     def add_node(self, node: Node):
         self._lock.acquire()
@@ -154,6 +158,12 @@ class Graph:
             if current_k != previous_k and previous_k is not None:
                 return False
         return True
+
+    def reset_labels(self):
+        for node_key in self.nodes:
+            self.nodes[node_key].label = ''
+        for edge_key in self.edges:
+            self.edges[edge_key].label = ''
 
     def _to_dict(self):
         matrix_dict: dict = {}
