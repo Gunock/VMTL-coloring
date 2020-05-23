@@ -1,0 +1,137 @@
+<html lang="en">
+<head>
+    <title>VMTL Coloring - Advanced Editor</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet">
+    <script crossorigin="anonymous"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+    <script src="../static/sigma-deps/sigma.min.js"></script>
+    <script src="../static/sigma-deps/sigma.parsers.json.js"></script>
+    <script src="../static/sigma-deps/settings.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.def.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.curve.js"></script>
+    <script src="../static/sigma-deps/sigma.canvas.edges.labels.curvedArrow.js"></script>
+
+    <link href="../static/backend-style.css" rel="stylesheet" type="text/css">
+</head>
+<body class="bg-secondary">
+<nav class="shadow navbar navbar-expand-sm bg-dark">
+    <form action="solve-vmtl" class="mr-1" method="get">
+        <input class="btn btn-success" type="submit" value="Solve VMTL"/>
+    </form>
+    <form action="clear-graph" class="mr-1" method="get">
+        <input class="btn btn-danger" type="submit" value="Clear graph"/>
+    </form>
+    <form action="backend-editor" class="mr-1 d-none" id="reset-labels" method="get">
+        <input class="btn btn-warning" type="submit" value="Reset labels"/>
+    </form>
+    </form>
+    <form action="hide-labels" class="mr-1" id="hide-labels" method="get">
+        <input class="btn btn-warning" type="submit" value="Hide labels"/>
+    </form>
+    <form action="backend-editor" class="mr-1 d-none" id="show-labels" method="get">
+        <input class="btn btn-success" type="submit" value="Show labels"/>
+    </form>
+    <a class="btn btn-primary mr-1" href="/frontend-editor" role="button">Interactive editor</a>
+</nav>
+<div class="shadow bg-light">
+    <div class="container bg-light">
+        <div class="row">
+            <div class="col-sm-6">
+                <h2>Nodes</h2>
+                <form action="add-node" method="post">
+                    <div class="form-group">
+                        <label for="x_pos">X</label><br>
+                        <input class="form-control" id="x_pos" name="x_pos" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="y_pos">Y</label><br>
+                        <input class="form-control" id="y_pos" name="y_pos" type="text">
+                    </div>
+                    <input class="btn btn-primary" id="s_1" type="submit" value="Add node">
+                </form>
+                <form action="delete-node" method="post">
+                    <label for="id_del">ID</label><br>
+                    <input class="form-control" id="id_del" name="id_del" type="text"><br>
+                    <input class="btn btn-primary" id="d_1" type="submit" value="Delete node">
+                </form>
+            </div>
+            <div class="col-sm-6">
+                <h2>Edges</h2>
+                <form action="add-edge" method="post">
+                    <div class="form-group">
+                        <label for="id_1">Source node ID</label>
+                        <input class="form-control" id="id_1" name="id_1" type="text">
+                    </div>
+                    <div class="form-group">
+                        <label for="id_2">Target node ID</label><br>
+                        <input class="form-control" id="id_2" name="id_2" type="text">
+                    </div>
+                    <input class="btn btn-primary" type="submit" value="Add edge">
+                </form>
+                <form action="delete-edge" method="post">
+                    <label for="id_edge__del">ID</label><br>
+                    <input class="form-control" id="id_edge__del" name="id_edge_del" type="text"><br>
+                    <input class="btn btn-primary" id="d_2" type="submit" value="Delete edge">
+                </form>
+            </div>
+        </div>
+        <br>
+    </div>
+</div>
+<div id="graph-container"></div>
+<script>
+    s = sigma.parsers.json("../data/graph.json", {
+        container: "sigma-container",
+        renderer: {
+            container: document.getElementById("graph-container"),
+            type: "canvas"
+        },
+        settings: {
+            autoRescale: true,
+            labelThreshold: 1,
+            defaultLabelSize: 50,
+            labelSize: "fixed",
+            edgeLabelThreshold: 1,
+            defaultEdgeLabelSize: 50,
+            edgeLabelSize: "fixed",
+            defaultNodeColor: "#ec5148"
+        }
+    });
+</script>
+
+{% with messages = get_flashed_messages() %}
+{% if messages and messages[0] == "labels-hidden" %}
+<script>
+    $("#show-labels").removeClass("d-none");
+    $("#hide-labels").addClass("d-none");
+</script>
+{% elif messages and messages[0] == "labels-vmtl" %}
+<script>
+    $("#reset-labels").removeClass("d-none");
+    $("#hide-labels").addClass("d-none");
+</script>
+{% elif messages %}
+<div aria-labelledby="modalLabel" class="modal fade show" id="modal" role="dialog" tabindex="-1">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalLabel">{{ messages[0] }}</h5>
+                <button aria-label="Close" class="close" data-dismiss="modal" type="button">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<script>$("#modal").modal("show");</script>
+{% endif %}
+{% endwith %}
+{% block body %}{% endblock %}
+
+</body>
+</html>

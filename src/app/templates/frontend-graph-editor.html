@@ -1,6 +1,15 @@
 <html lang="en">
 <head>
-    <title>VMTL Coloring</title>
+    <title>VMTL Coloring - Interactive Editor</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link crossorigin="anonymous" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" rel="stylesheet">
+    <script crossorigin="anonymous"
+            integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
+            src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <link href="../static/frontend-style.css" rel="stylesheet">
+
     <!-- START SIGMA IMPORTS -->
     <script src="../static/sigma-deps/sigma.core.js"></script>
     <script src="../static/sigma-deps/utils/sigma.utils.js"></script>
@@ -28,17 +37,11 @@
     <script src="../static/sigma-deps/sigma.canvas.edges.labels.curve.js"></script>
     <script src="../static/sigma-deps/sigma.canvas.edges.labels.curvedArrow.js"></script>
     <!-- END SIGMA IMPORTS -->
-
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <link crossorigin="anonymous" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
-          integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" rel="stylesheet">
-    <link href="../static/frontend-style.css" rel="stylesheet" type="text/css">
 </head>
-<body class="bg-dark">
-<nav class="navbar navbar-expand-sm">
-    <button class="btn btn-success mr-1" onclick="solveVmtl()">Solve VMTL</button>
+<body class="bg-secondary">
+<nav class="shadow navbar navbar-expand-sm bg-dark">
     <button class="btn btn-danger mr-1" onclick="clearGraph()">Clear</button>
-    <a class="btn btn-primary mr-1" href='/' role="button">Backend editor</a>
+    <a class="btn btn-primary mr-1" href="/" role="button">Advanced editor</a>
 </nav>
 <div id="graph-container">
     <div id="disc"></div>

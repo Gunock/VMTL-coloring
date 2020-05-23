@@ -36,7 +36,7 @@ class Graph:
             self.set_edge_label(len(self.edges), edge_dict['label'])
         self._lock.release()
 
-    def create_edge(self, node_1_id: int, node_2_id: int):
+    def create_edge(self, node_1_id: int, node_2_id: int) -> None:
         if node_1_id not in self.nodes or node_2_id not in self.nodes:
             return
         node_1 = self.nodes[node_1_id]
@@ -63,11 +63,11 @@ class Graph:
         if edge_2 not in self.nodes[node_2.id].edges:
             self.nodes[node_2.id].edges.append(edge_2)
 
-    def create_node(self, x_pos: float, y_pos: float):
+    def create_node(self, x_pos: float, y_pos: float) -> None:
         node = Node(len(self.nodes) + 1, x_pos, y_pos)
         self.add_node(node)
 
-    def add_node(self, node: Node):
+    def add_node(self, node: Node) -> None:
         self._lock.acquire()
         if node not in self.nodes.values():
             self.nodes[node.id] = node
@@ -76,11 +76,31 @@ class Graph:
             self.nodes[node.id].y = node.y
         self._lock.release()
 
-    def set_node_label(self, node_id: int, label: str):
+    def delete_node(self, node_id: str) -> None:
+        node_id = int(re.search(r'[0-9]+', node_id).group())
+        if node_id not in self.nodes:
+            return
+
+        while len(self.nodes[node_id].edges) > 0:
+            self.delete_edge(str(self.nodes[node_id].edges[0]))
+        del self.nodes[node_id]
+        self.reset_ids()
+
+    def delete_edge(self, edge_id: str) -> None:
+        edge_id = int(re.search(r'[0-9]+', edge_id).group())
+        if edge_id not in self.edges:
+            return
+        edge = self.edges[edge_id]
+        self.nodes[edge.source.id].edges.remove(edge)
+        self.nodes[edge.target.id].edges.remove(edge)
+        del self.edges[edge_id]
+        self.reset_ids()
+
+    def set_node_label(self, node_id: int, label: str) -> None:
         if node_id in self.nodes:
             self.nodes[node_id].label = label
 
-    def set_edge_label(self, edge_id: int, label: str):
+    def set_edge_label(self, edge_id: int, label: str) -> None:
         if edge_id not in self.edges:
             return
 
@@ -92,7 +112,7 @@ class Graph:
             if self.nodes[self.edges[edge_id].target.id].edges[i].id == edge_id:
                 self.nodes[self.edges[edge_id].target.id].edges[i].label = label
 
-    def max_edges(self):
+    def max_edges(self) -> int:
         result: int = 0
         for node in self.nodes.values():
             if len(node.edges) > result:
@@ -143,7 +163,7 @@ class Graph:
 
         return True
 
-    def is_complete(self):
+    def is_complete(self) -> bool:
         matrix: List[list] = self._to_reduced_matrix()
         for row in matrix:
             for cell in row:
@@ -159,13 +179,30 @@ class Graph:
                 return False
         return True
 
-    def reset_labels(self):
+    def is_empty(self) -> bool:
+        return len(self.nodes) == 0
+
+    def reset_labels(self) -> None:
         for node_key in self.nodes:
             self.nodes[node_key].label = ''
         for edge_key in self.edges:
             self.edges[edge_key].label = ''
 
-    def _to_dict(self):
+    def reset_ids(self) -> None:
+        graph_new = Graph()
+        node_ids_map = {}
+        for key in self.nodes:
+            node = self.nodes[key]
+            graph_new.create_node(node.x, node.y)
+            node_id_new = graph_new.nodes[list(graph_new.nodes.keys())[-1]].id
+            node_ids_map[key] = node_id_new
+        for key in self.edges:
+            edge = self.edges[key]
+            graph_new.create_edge(node_ids_map[edge.source.id], node_ids_map[edge.target.id])
+        self.nodes = graph_new.nodes
+        self.edges = graph_new.edges
+
+    def _to_dict(self) -> dict:
         matrix_dict: dict = {}
         for node_1 in self.nodes.values():
             matrix_dict[node_1.id] = {}
@@ -177,7 +214,7 @@ class Graph:
             matrix_dict[edge.target.id][edge.source.id] = 1
         return matrix_dict
 
-    def _to_matrix(self):
+    def _to_matrix(self) -> list:
         matrix_dict = self._to_dict()
 
         result: list = []
@@ -187,7 +224,7 @@ class Graph:
                 result[len(result) - 1].append(matrix_dict[key_1][key_2])
         return result
 
-    def _to_reduced_matrix(self):
+    def _to_reduced_matrix(self) -> list:
         result = self._to_matrix()
         i: int = 0
         while i < len(result):

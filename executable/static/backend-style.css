@@ -1,0 +1,21 @@
+body {
+    display: flex;
+    flex-flow: column;
+}
+
+#graph-container {
+    flex-grow: 1;
+    background: #fff;
+    height: available;
+    position: relative;
+    overflow: hidden;
+}
+
+#graph-edit {
+    float: left;
+    width: 25%;
+}
+
+form {
+    margin: 0;
+}

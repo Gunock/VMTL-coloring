@@ -1,6 +1,6 @@
 'use strict';
 
-var s, c, dom, disc, ground, nId = 0, eId = 0, radius = 50, mouseX, mouseY, spaceMode = false, wheelRatio = 1.1,
+let s, c, dom, disc, ground, nId = 0, eId = 0, radius = 50, mouseX, mouseY, spaceMode = false, wheelRatio = 1.1,
     nodeRadius = 10, maxDisplacement = 15;
 
 
@@ -46,6 +46,7 @@ $.get('/data/graph.json', function (data) {
             defaultEdgeLabelSize: 30,
             labelSize: 'fixed',
             edgeLabelSize: 'fixed',
+            scalingMode: 'outside'
         }
     });
     nId = data['nodes'].length
@@ -137,7 +138,6 @@ $.get('/data/graph.json', function (data) {
 
 })
 
-
 function frame() {
     s.graph.computePhysics();
 
@@ -173,7 +173,7 @@ function frame() {
 
         ground.style.top =
             (Math.max(h / 2 - Math.min((yMin + yMax) / 2 * scale, h), 0) + 'px').toString();
-        disc.style.borderRadius = (radius * scale).toString();
+        disc.style.borderRadius = '50%';
         disc.style.width = (2 * radius * scale).toString();
         disc.style.height = (2 * radius * scale).toString();
         disc.style.top = (mouseY - radius * scale).toString();
@@ -184,24 +184,10 @@ function frame() {
     s.refresh();
 }
 
-
-function solveVmtl() {
-    $.ajax({
-        type: 'get',
-        url: '/frontend-editor/solve-vmtl',
-        complete: function (jqXHR, textStatus) {
-            let solution = JSON.parse(jqXHR.responseText)
-            console.log(solution)
-            s.graph.clear()
-            s.graph.read(solution)
-            s.refresh()
-        }
-    })
-}
-
-
 function clearGraph() {
     $.post('/frontend-editor/clear-graph', function () {
         s.graph.clear()
+        eId = 0
+        nId = 0
     })
 }
