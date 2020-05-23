@@ -76,6 +76,15 @@ class Graph:
             self.nodes[node.id].y = node.y
         self._lock.release()
 
+    def delete_node(self, n):
+        for edge in list(self.edges):
+            if self.edges[edge].target.id == n or self.edges[edge].source.id == n:
+                del self.edges[edge]
+        del self.nodes[n]
+
+    def delete_edge(self, n):
+        del self.edges[n]
+
     def set_node_label(self, node_id: int, label: str):
         if node_id in self.nodes:
             self.nodes[node_id].label = label

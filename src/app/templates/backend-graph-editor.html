@@ -39,6 +39,11 @@
                     </div>
                     <input class="btn btn-primary" id="s_1" type="submit" value="Add vertex">
                 </form>
+                <form action="delete-node" method="post">
+                      <label for="id_del">ID:</label><br>
+                      <input class="form-control" type="text" id="id_del" name="id_del"><br>
+                      <input class="btn btn-primary" type="submit" value="Delete vertex" id="d_1">
+                </form>
             </div>
             <div class="col-sm-6">
                 <h2>Edges</h2>
@@ -52,6 +57,11 @@
                         <input class="form-control" id="id_2" name="id_2" type="text">
                     </div>
                     <input class="btn btn-primary" type="submit" value="Add edge">
+                </form>
+                <form action="delete-edge" method="post">
+                      <label for="id_edge__del">ID:</label><br>
+                      <input class="form-control" type="text" id="id_edge__del" name="id_edge_del"><br>
+                      <input class="btn btn-primary" type="submit" value="Delete edge" id="d_2">
                 </form>
             </div>
         </div>

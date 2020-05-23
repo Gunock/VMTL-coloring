@@ -47,6 +47,24 @@ def backend_add_edge():
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
+@app.route('/delete-node', methods=["POST"])
+def backend_delete_node():
+    global graph, graph_file_path
+    n = int(request.form['id_del'])
+    graph.delete_node(n)
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
+
+
+@app.route('/delete-edge', methods=["POST"])
+def backend_delete_edge():
+    global graph, graph_file_path
+    n = int(request.form['id_edge_del'])
+    graph.delete_edge(n)
+    graph.save_as_json(graph_file_path)
+    return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
+
+
 @app.route("/clear-graph", methods=["POST"])
 def backend_clear_graph():
     global graph, graph_file_path
