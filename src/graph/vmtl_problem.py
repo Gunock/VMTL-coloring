@@ -11,10 +11,16 @@ class VmtlProblem:
     def __init__(self, graph: Graph):
         self._problem = constraint.Problem()
         self._graph: Graph = graph
+        if graph.is_empty():
+            return
         self._setup_problem()
 
     def get_solution(self) -> Graph:
+        if self._graph.is_empty():
+            return Graph()
         solution: dict = self._problem.getSolution()
+        if not solution:
+            return Graph()
         return self._solution_to_graph(solution)
 
     def _setup_problem(self) -> None:
@@ -50,7 +56,7 @@ class VmtlProblem:
         return [i for i in range(sum(range(1, max_edges + 1)), k_max) if left_side <= i * vertex_count <= right_side]
 
     @staticmethod
-    def _binomial(n, k):  # better version - we don't need two products!
+    def _binomial(n, k) -> int:
         if not 0 <= k <= n:
             return 0
         b = 1
@@ -72,8 +78,7 @@ class VmtlProblem:
             problem.addVariable('e' + str(edge), colors)
 
     @staticmethod
-    def _add_k_variable(problem: constraint.Problem, graph: Graph):
-        possible_k = []
+    def _add_k_variable(problem: constraint.Problem, graph: Graph) -> None:
         if graph.is_cyclic():
             vertex_count = len(graph.nodes)
             known_k = 0
@@ -136,9 +141,7 @@ class VmtlProblem:
 
     @staticmethod
     def _add_vmtl_constraints_to_problem(problem: constraint.Problem, graph: Graph) -> None:
-        node_variables: list = ['n' + str(node) for node in graph.nodes]
-        edge_variables: list = ['e' + str(edge) for edge in graph.edges]
-        problem.addConstraint(constraint.AllDifferentConstraint(), node_variables + edge_variables)
+        problem.addConstraint(constraint.AllDifferentConstraint())
 
         # vertex and it's edge count equals k
         VmtlProblem._add_k_constraint(problem, graph)

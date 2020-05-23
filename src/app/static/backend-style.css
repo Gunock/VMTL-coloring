@@ -1,8 +1,12 @@
+body {
+    display: flex;
+    flex-flow: column;
+}
+
 #graph-container {
+    flex-grow: 1;
     background: #fff;
-    height: 600px;
-    max-width: 1500px;
-    margin: auto;
+    height: available;
     position: relative;
     overflow: hidden;
 }
