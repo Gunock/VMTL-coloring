@@ -62,9 +62,13 @@ class Graph:
             self.nodes[node_2.id].edges.append(edge_2)
         return True
 
-    def create_node(self, x_pos: float, y_pos: float) -> None:
+    def create_node(self, x_pos: float, y_pos: float) -> bool:
+        for node_1 in list(self.nodes.values()):
+            if round(node_1.x) == round(x_pos) and round(node_1.y) == round(y_pos):
+                return False
         node = Node(len(self.nodes) + 1, x_pos, y_pos)
         self.add_node(node)
+        return True
 
     def add_node(self, node: Node) -> None:
         if node not in self.nodes.values():

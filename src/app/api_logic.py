@@ -46,8 +46,10 @@ def backend_add_node():
     global graph, graph_file_path
 
     try:
-        graph.create_node(float(request.form['x_pos']), float(request.form['y_pos']))
-        graph.save_as_json(graph_file_path, id_as_label=True)
+        if graph.create_node(float(request.form['x_pos']), float(request.form['y_pos'])):
+            graph.save_as_json(graph_file_path, id_as_label=True)
+        else:
+            flash('Given coordinates already used by other node')
     except (ValueError, AttributeError):
         flash('Incorrect input')
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
