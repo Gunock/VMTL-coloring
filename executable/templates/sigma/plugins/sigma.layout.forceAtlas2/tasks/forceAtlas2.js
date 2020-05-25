@@ -7,7 +7,7 @@ var uglify = require('uglify-js');
 
 // Shorteners
 function minify(string) {
-    return uglify.minify(string, {fromString: true}).code;
+  return uglify.minify(string, {fromString: true}).code;
 }
 
 // Crushing function

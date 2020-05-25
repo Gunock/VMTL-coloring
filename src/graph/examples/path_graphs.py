@@ -19,6 +19,7 @@ def main():
     benchmark_path_graph(4)
     benchmark_path_graph(5)
     benchmark_path_graph(6)
+    benchmark_path_graph(10)
 
 
 if __name__ == '__main__':

@@ -19,6 +19,7 @@ def main():
     benchmark_complete_graph(4)
     benchmark_complete_graph(5)
     benchmark_complete_graph(6)
+    benchmark_complete_graph(10)
 
 
 if __name__ == '__main__':

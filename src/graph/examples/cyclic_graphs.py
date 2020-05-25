@@ -20,6 +20,9 @@ def main():
     benchmark_cyclic_graph(4)
     benchmark_cyclic_graph(5)
     benchmark_cyclic_graph(6)
+    benchmark_cyclic_graph(10)
+    benchmark_cyclic_graph(11)
+    benchmark_cyclic_graph(12)
 
 
 if __name__ == '__main__':

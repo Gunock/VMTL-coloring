@@ -6,8 +6,8 @@ sigma.conrad = conrad;
 
 // Dirty polyfills to permit sigma usage in node
 if (typeof HTMLElement === 'undefined')
-    HTMLElement = function () {
-    };
+  HTMLElement = function () {
+  };
 
 if (typeof window === 'undefined')
     window = {

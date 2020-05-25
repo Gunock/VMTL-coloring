@@ -30,7 +30,7 @@ class Graph:
         target_id = edge_dict['target']
         self.create_edge(source_id, target_id)
         if 'label' in edge_dict:
-            self.set_edge_label(len(self.edges), edge_dict['label'])
+            self.set_edge_label(str(len(self.edges)), edge_dict['label'])
 
     def create_edge(self, node_1_id: str, node_2_id: str) -> bool:
         node_1_id = int(re.search(r'[0-9]+', node_1_id).group())
@@ -95,11 +95,13 @@ class Graph:
         self.reset_ids()
         return True
 
-    def set_node_label(self, node_id: int, label: str) -> None:
+    def set_node_label(self, node_id: str, label: str) -> None:
+        node_id = int(re.search(r'[0-9]+', node_id).group())
         if node_id in self.nodes:
             self.nodes[node_id].label = label
 
-    def set_edge_label(self, edge_id: int, label: str) -> None:
+    def set_edge_label(self, edge_id: str, label: str) -> None:
+        edge_id = int(re.search(r'[0-9]+', edge_id).group())
         if edge_id not in self.edges:
             return
 
