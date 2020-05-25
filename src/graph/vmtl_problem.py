@@ -20,6 +20,7 @@ class VmtlProblem:
         if self._graph.is_empty():
             return Graph()
         solver = cp_model.CpSolver()
+        solver.parameters.max_time_in_seconds = 60.0
         status = solver.Solve(self._model)
         if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
             return self._solution_to_graph(solver)

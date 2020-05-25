@@ -1,8 +1,6 @@
 import json
-import multiprocessing
 import os
 import re
-from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 from flask import Flask, render_template, send_from_directory, request, Response, flash, redirect, url_for
@@ -125,24 +123,14 @@ def backend_clear_graph():
 def backend_solve_vmtl():
     global graph, graph_file_path
 
-    pool = ThreadPool(1)
-    res = pool.apply_async(_get_vmtl_coloring, (graph,))
-    try:
-        solution_graph = res.get(60)
-        if not solution_graph.is_empty():
-            graph = solution_graph
-            graph.save_as_json(graph_file_path)
-            flash('labels-vmtl')
-        else:
-            flash("VMTL coloring not found")
-    except multiprocessing.TimeoutError:
-        flash("VMTL coloring took too much time to find")
-    pool.terminate()
+    solution_graph = VmtlProblem(graph).get_solution()
+    if not solution_graph.is_empty():
+        graph = solution_graph
+        graph.save_as_json(graph_file_path)
+        flash('labels-vmtl')
+    else:
+        flash("VMTL coloring not found")
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
-
-
-def _get_vmtl_coloring(graph_1: Graph):
-    return VmtlProblem(graph_1).get_solution()
 
 
 @app.route("/frontend-editor", methods=["GET"])
