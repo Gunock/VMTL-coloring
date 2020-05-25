@@ -194,7 +194,7 @@ class Graph:
             node = self.nodes[key]
             graph_new.create_node(node.x, node.y)
             node_id_new = graph_new.nodes[list(graph_new.nodes.keys())[-1]].id
-            node_ids_map[key] = node_id_new
+            node_ids_map[key] = str(node_id_new)
         for key in self.edges:
             edge = self.edges[key]
             graph_new.create_edge(node_ids_map[edge.source.id], node_ids_map[edge.target.id])
