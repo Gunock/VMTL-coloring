@@ -1,6 +1,5 @@
 import json
 import re
-from threading import Lock
 from typing import List, Dict
 
 from src.graph.edge import Edge
@@ -12,7 +11,6 @@ class Graph:
         self.edges: Dict[int, Edge] = {}
         self.nodes: Dict[int, Node] = {}
         self.k: int = -1
-        self._lock = Lock()
 
     def __repr__(self):
         return str(self.to_dict())
@@ -28,17 +26,17 @@ class Graph:
             f.write(json.dumps(self.to_dict(id_as_label)))
 
     def create_edge_from_dict(self, edge_dict: dict) -> None:
-        self._lock.acquire()
-        source_id = int(re.search(r'[0-9]+', edge_dict['source']).group())
-        target_id = int(re.search(r'[0-9]+', edge_dict['target']).group())
+        source_id = edge_dict['source']
+        target_id = edge_dict['target']
         self.create_edge(source_id, target_id)
         if 'label' in edge_dict:
             self.set_edge_label(len(self.edges), edge_dict['label'])
-        self._lock.release()
 
-    def create_edge(self, node_1_id: int, node_2_id: int) -> None:
+    def create_edge(self, node_1_id: str, node_2_id: str) -> bool:
+        node_1_id = int(re.search(r'[0-9]+', node_1_id).group())
+        node_2_id = int(re.search(r'[0-9]+', node_2_id).group())
         if node_1_id not in self.nodes or node_2_id not in self.nodes:
-            return
+            return False
         node_1 = self.nodes[node_1_id]
         node_2 = self.nodes[node_2_id]
 
@@ -62,39 +60,40 @@ class Graph:
         # check if edge is already in connected nodes
         if edge_2 not in self.nodes[node_2.id].edges:
             self.nodes[node_2.id].edges.append(edge_2)
+        return True
 
     def create_node(self, x_pos: float, y_pos: float) -> None:
         node = Node(len(self.nodes) + 1, x_pos, y_pos)
         self.add_node(node)
 
     def add_node(self, node: Node) -> None:
-        self._lock.acquire()
         if node not in self.nodes.values():
             self.nodes[node.id] = node
         else:
             self.nodes[node.id].x = node.x
             self.nodes[node.id].y = node.y
-        self._lock.release()
 
-    def delete_node(self, node_id: str) -> None:
+    def delete_node(self, node_id: str) -> bool:
         node_id = int(re.search(r'[0-9]+', node_id).group())
         if node_id not in self.nodes:
-            return
+            return False
 
         while len(self.nodes[node_id].edges) > 0:
             self.delete_edge(str(self.nodes[node_id].edges[0]))
         del self.nodes[node_id]
         self.reset_ids()
+        return True
 
-    def delete_edge(self, edge_id: str) -> None:
+    def delete_edge(self, edge_id: str) -> bool:
         edge_id = int(re.search(r'[0-9]+', edge_id).group())
         if edge_id not in self.edges:
-            return
+            return False
         edge = self.edges[edge_id]
         self.nodes[edge.source.id].edges.remove(edge)
         self.nodes[edge.target.id].edges.remove(edge)
         del self.edges[edge_id]
         self.reset_ids()
+        return True
 
     def set_node_label(self, node_id: int, label: str) -> None:
         if node_id in self.nodes:
@@ -259,7 +258,7 @@ class Graph:
         for i in range(1, n + 1):
             graph.add_node(Node(i))
         for i in range(1, n + 1):
-            graph.create_edge(i, i % n + 1)
+            graph.create_edge(str(i), str(i % n + 1))
         return graph
 
     @staticmethod
@@ -268,7 +267,7 @@ class Graph:
         for i in range(1, n + 1):
             graph.add_node(Node(i))
         for i in range(1, n):
-            graph.create_edge(i, i + 1)
+            graph.create_edge(str(i), str(i + 1))
         return graph
 
     @staticmethod
@@ -280,5 +279,5 @@ class Graph:
             for j in range(1, n + 1):
                 if i == j:
                     break
-                graph.create_edge(i, j)
+                graph.create_edge(str(i), str(j))
         return graph

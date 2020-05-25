@@ -1,6 +1,8 @@
 import json
+import multiprocessing
 import os
 import re
+from multiprocessing.pool import ThreadPool
 from pathlib import Path
 
 from flask import Flask, render_template, send_from_directory, request, Response, flash, redirect, url_for
@@ -43,8 +45,11 @@ def backend_index_redirect():
 def backend_add_node():
     global graph, graph_file_path
 
-    graph.create_node(float(request.form['x_pos']), float(request.form['y_pos']))
-    graph.save_as_json(graph_file_path, id_as_label=True)
+    try:
+        graph.create_node(float(request.form['x_pos']), float(request.form['y_pos']))
+        graph.save_as_json(graph_file_path, id_as_label=True)
+    except (ValueError, AttributeError):
+        flash('Incorrect input')
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
@@ -52,8 +57,20 @@ def backend_add_node():
 def backend_add_edge():
     global graph, graph_file_path
 
-    graph.create_edge(int(request.form['id_1']), int(request.form['id_2']))
-    graph.save_as_json(graph_file_path, id_as_label=True)
+    try:
+        node_id_1: str = re.match(r'n([0-9]+)|([0-9]+)', request.form['id_1']).group()
+        node_id_2: str = re.match(r'n([0-9]+)|([0-9]+)', request.form['id_2']).group()
+        assert not node_id_1 == node_id_2
+        print(node_id_1)
+        print(node_id_2)
+        if graph.create_edge(node_id_1, node_id_2):
+            graph.save_as_json(graph_file_path, id_as_label=True)
+        else:
+            flash('One of given nodes does not exist')
+    except (ValueError, AttributeError):
+        flash('Incorrect input')
+    except AssertionError:
+        flash('Node IDs should be different')
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
@@ -61,9 +78,12 @@ def backend_add_edge():
 def backend_delete_node():
     global graph, graph_file_path
 
-    if re.match(r"n[0-9]+", request.form['id_del']):
-        graph.delete_node(request.form['id_del'])
-        graph.save_as_json(graph_file_path, id_as_label=True)
+    try:
+        node_id: str = str(re.match(r'n([0-9]+)|([0-9]+)', request.form['id_del']).group(1))
+        if graph.delete_node(node_id):
+            graph.save_as_json(graph_file_path, id_as_label=True)
+    except (ValueError, AttributeError):
+        flash('Incorrect input')
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
@@ -71,9 +91,12 @@ def backend_delete_node():
 def backend_delete_edge():
     global graph, graph_file_path
 
-    if not re.match(r"e[0-9]+", request.form['id_del']):
-        graph.delete_edge(request.form['id_edge_del'])
-        graph.save_as_json(graph_file_path, id_as_label=True)
+    try:
+        edge_id: str = re.match(r'e([0-9]+)|([0-9]+)', request.form['id_edge_del']).group()
+        if graph.delete_edge(edge_id):
+            graph.save_as_json(graph_file_path, id_as_label=True)
+    except (ValueError, AttributeError):
+        flash('Incorrect input')
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
 
 
@@ -100,20 +123,24 @@ def backend_clear_graph():
 def backend_solve_vmtl():
     global graph, graph_file_path
 
-    solution_graph = Graph()
+    pool = ThreadPool(1)
+    res = pool.apply_async(_get_vmtl_coloring, (graph,))
     try:
-        problem = VmtlProblem(graph)
-        solution_graph = problem.get_solution()
-    except ValueError:
-        pass
-
-    if not solution_graph.is_empty():
-        graph = solution_graph
-        graph.save_as_json(graph_file_path)
-        flash('labels-vmtl')
-    else:
-        flash("VMTL coloring not found")
+        solution_graph = res.get(60)
+        if not solution_graph.is_empty():
+            graph = solution_graph
+            graph.save_as_json(graph_file_path)
+            flash('labels-vmtl')
+        else:
+            flash("VMTL coloring not found")
+    except multiprocessing.TimeoutError:
+        flash("VMTL coloring took too much time to find")
+    pool.terminate()
     return render_template("backend-graph-editor.html", last_updated=dir_last_updated('data'))
+
+
+def _get_vmtl_coloring(graph_1: Graph):
+    return VmtlProblem(graph_1).get_solution()
 
 
 @app.route("/frontend-editor", methods=["GET"])
@@ -128,7 +155,6 @@ def frontend_index():
 @app.route("/frontend-editor/add-node", methods=["POST"])
 def frontend_add_node():
     global graph
-
     node: dict = json.loads(request.data)
     graph.create_node(float(node['x']), float(node['y']))
     return Response(status=201)
