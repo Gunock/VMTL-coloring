@@ -79,7 +79,7 @@ def backend_delete_node():
     global graph, graph_file_path
 
     try:
-        node_id: str = str(re.match(r'n([0-9]+)|([0-9]+)', request.form['id_del']).group(1))
+        node_id: str = str(re.match(r'n([0-9]+)|([0-9]+)', request.form['id_del']).group())
         if graph.delete_node(node_id):
             graph.save_as_json(graph_file_path, id_as_label=True)
     except (ValueError, AttributeError):
