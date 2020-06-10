@@ -5,7 +5,6 @@ from src.graph.graph import Graph
 
 
 class VmtlProblem:
-
     def __init__(self, graph: Graph):
         self._n_vars: dict = {}
         self._e_vars: dict = {}
@@ -76,13 +75,14 @@ class VmtlProblem:
         vertex_count = len(graph.nodes)
         edge_count = len(graph.edges)
         vertex_edge_count = vertex_count + edge_count
-        max_edges = graph.max_edges()
-        k_max = ((max_edges + 1) * vertex_edge_count - sum(range(1, max_edges + 1))) + 1
 
         left_side = VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(edge_count + 1, 2)
         right_side = 2 * VmtlProblem._binomial(vertex_edge_count + 1, 2) + VmtlProblem._binomial(vertex_count + 1, 2)
 
-        return [i for i in range(sum(range(1, max_edges + 1)), k_max) if left_side <= i * vertex_count <= right_side]
+        max_edges = graph.max_edges()  # Max amount of edges connected to node in given graph
+        k_min: int = sum(range(1, max_edges + 1))
+        k_max: int = (max_edges + 1) * vertex_edge_count - k_min
+        return [i for i in range(k_min, k_max + 1) if left_side <= i * vertex_count <= right_side]
 
     @staticmethod
     def _binomial(n, k) -> int:

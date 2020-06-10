@@ -10,7 +10,6 @@ class Graph:
     def __init__(self):
         self.edges: Dict[int, Edge] = {}
         self.nodes: Dict[int, Node] = {}
-        self.k: int = -1
 
     def __repr__(self):
         return str(self.to_dict())
